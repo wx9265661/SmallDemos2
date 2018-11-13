@@ -1,5 +1,7 @@
 package com.zhanghaochen.smalldemos;
 
+import com.zhanghaochen.smalldemos.utils.SysUtils;
+
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -13,5 +15,10 @@ public class ExampleUnitTest {
     @Test
     public void addition_isCorrect() {
         assertEquals(4, 2 + 2);
+    }
+
+    @Test
+    public void testEval() {
+        assertEquals(23.5, SysUtils.eval("sin(270)"), 0.1);
     }
 }

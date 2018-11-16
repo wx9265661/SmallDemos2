@@ -17,9 +17,14 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".FxActivity"
+            android:name=".demos.FxActivity"
             android:exported="false"
             android:label="函数图像" />
+
+        <activity
+            android:name=".demos.ConstraintLayoutDemoActivity"
+            android:exported="false"
+            android:label="ConstraintLayout" />
     </application>
 
 </manifest>

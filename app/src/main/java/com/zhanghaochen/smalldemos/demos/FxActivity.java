@@ -1,4 +1,4 @@
-package com.zhanghaochen.smalldemos;
+package com.zhanghaochen.smalldemos.demos;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.zhanghaochen.smalldemos.R;
 import com.zhanghaochen.smalldemos.utils.SysUtils;
 import com.zhanghaochen.smalldemos.widget.FxView;
 

@@ -85,22 +85,4 @@ task jacocoTestReport(type: JacocoReport) {
             })
         }
     }
-
-    doLast {
-        copy {
-            from '..app/build/reports'
-            into '../report/test-results/unittestReports'
-            include '**/*.html'
-        }
-        copy {
-            from utilTest
-            into '../report'
-            rename("testDebugUnitTest.exec", 'testUnitTest.exec')
-        }
-        copy {
-            from androidTest
-            into '../report'
-            rename("${androidTestFileName}", 'androidTestUnitTest.ec')
-        }
-    }
 }

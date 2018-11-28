@@ -19,6 +19,6 @@ public class ExampleUnitTest {
 
     @Test
     public void testEval() {
-        assertEquals(23.5, SysUtils.eval("sin(270)"), 0.1);
+        assertEquals(-1, SysUtils.eval("sin(270)"), 0.1);
     }
 }

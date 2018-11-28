@@ -15,6 +15,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        debug {
+            testCoverageEnabled true
+        }
     }
 }
 
@@ -25,6 +28,79 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    androidTestImplementation 'com.android.support.test:rules:1.0.2'
     implementation 'com.android.support:gridlayout-v7:27.1.1'
     implementation 'com.android.support:recyclerview-v7:27.1.1'
+}
+apply plugin: 'jacoco'
+
+jacoco {
+    toolVersion = "0.7.9"
+}
+def coverageSourceDirs = ['../app/src/main/java']
+task jacocoTestReport(type: JacocoReport, dependsOn: ["testDebugUnitTest", "connectedDebugAndroidTest"]) {
+    doFirst {
+        delete('../report/testUnitTest.exec')
+        delete('../report/androidTestUnitTest.ec')
+        delete('../report/test-results/')
+    }
+    group = "Reporting"
+    jacoco {
+        reportsDir = file("../report/test-results/")
+    }
+    description = "Generate Jacoco coverage reports"
+
+    classDirectories = fileTree(dir: '../app/build/intermediates/classes/debug',
+            excludes: ['**/R.class',
+                       '**/R$*.class',
+                       '**/*$ViewInjector*.*',
+                       '**/BuildConfig.*',
+                       '**/Manifest*.*'])
+
+    def utilTest = '../app/build/jacoco/testDebugUnitTest.exec'
+    def androidTestDir = '../app/build/outputs/code-coverage/connected/'
+    def androidTest
+    def androidTestFileName
+    FileTree iotTree = fileTree(dir: androidTestDir, includes: ['*.ec'])
+    iotTree.each {
+        File file ->
+            androidTestFileName = file.name
+            androidTest = file.path
+    }
+    additionalSourceDirs = files(coverageSourceDirs)
+    sourceDirectories = files(coverageSourceDirs)
+    executionData = files(utilTest, androidTest)
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+    afterEvaluate {
+        jacocoTestReport {
+            classDirectories = files(classDirectories.files.collect {
+                fileTree(dir: "../app/build/intermediates/classes/debug/com/zhanghaochen/smalldemos",
+                        exclude: [
+                                '**/*$*.*',
+                        ])
+            })
+        }
+    }
+
+    doLast {
+        copy {
+            from '..app/build/reports'
+            into '../report/test-results/unittestReports'
+            include '**/*.html'
+        }
+        copy {
+            from utilTest
+            into '../report'
+            rename("testDebugUnitTest.exec", 'testUnitTest.exec')
+        }
+        copy {
+            from androidTest
+            into '../report'
+            rename("${androidTestFileName}", 'androidTestUnitTest.ec')
+        }
+    }
 }

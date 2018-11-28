@@ -86,3 +86,9 @@ task jacocoTestReport(type: JacocoReport) {
         }
     }
 }
+task compressJacocoReport(type: Zip) {
+    from "../report/test-results/jacocoTestReport"
+    into '../jacocoReport'
+    baseName = 'jacocoReport'
+    destinationDir file("../report/test-results")
+}

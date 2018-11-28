@@ -38,7 +38,7 @@ jacoco {
     toolVersion = "0.7.9"
 }
 def coverageSourceDirs = ['../app/src/main/java']
-task jacocoTestReport(type: JacocoReport, dependsOn: ["testDebugUnitTest", "connectedDebugAndroidTest"]) {
+task jacocoTestReport(type: JacocoReport) {
     doFirst {
         delete('../report/testUnitTest.exec')
         delete('../report/androidTestUnitTest.ec')

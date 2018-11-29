@@ -87,8 +87,20 @@ task jacocoTestReport(type: JacocoReport) {
     }
 }
 task compressJacocoReport(type: Zip) {
-    from "../report/test-results/jacocoTestReport"
-    into '../jacocoReport'
-    baseName = 'jacocoReport'
+    into('../jacocoReport') {
+        from "../report/test-results/jacocoTestReport"
+        baseName = 'jacocoReport'
+    }
+
+    into('../androidTestReport') {
+        from "../app/build/reports/androidTests/connected"
+        baseName = 'androidTestReport'
+    }
+
+    into('../unitTestReport') {
+        from "../app/build/reports/tests/testDebugUnitTest"
+        baseName = 'unitTestReport'
+    }
+
     destinationDir file("../report/test-results")
 }

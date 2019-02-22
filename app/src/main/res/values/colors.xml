@@ -7,4 +7,7 @@
     <color name="paint_crossline_color">#000000</color>
     <color name="paint_lines_color">#3F51B5</color>
     <color name="paint_text_color">#FF4081</color>
+
+    <color name="edit_normal_color">#FFFFFF</color>
+    <color name="edit_selected_color">#FF0000</color>
 </resources>

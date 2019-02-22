@@ -17,12 +17,23 @@ public class SysUtils {
         return (int) (metrics.density * dp + 0.5f);
     }
 
+    public static int convertDpToPixel(float dp) {
+        DisplayMetrics metrics = GlobalParams.mApplication.getResources().getDisplayMetrics();
+        return (int) (metrics.density * dp + 0.5f);
+    }
+
     public static int convertSpToPixel(Context context, float sp) {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         return (int) (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
                 sp, metrics));
     }
 
+    /**
+     * 将字符串转换成算术式并进行计算
+     *
+     * @param str 算术
+     * @return 结果
+     */
     public static double eval(final String str) {
         return new Object() {
             int pos = -1, ch;

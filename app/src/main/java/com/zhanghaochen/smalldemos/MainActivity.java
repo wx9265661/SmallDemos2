@@ -7,6 +7,7 @@ import android.view.View;
 
 import com.zhanghaochen.smalldemos.demos.ConstraintLayoutDemoActivity;
 import com.zhanghaochen.smalldemos.demos.FxActivity;
+import com.zhanghaochen.smalldemos.views.EditPictureActivity;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -22,6 +23,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // test01 函数图像
         findViewById(R.id.demo01).setOnClickListener(this);
         findViewById(R.id.demo02).setOnClickListener(this);
+        findViewById(R.id.demo03).setOnClickListener(this);
     }
 
     @Override
@@ -32,6 +34,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.demo02:
                 startActivity(new Intent(MainActivity.this, ConstraintLayoutDemoActivity.class));
+                break;
+            case R.id.demo03:
+                startActivity(new Intent(MainActivity.this, EditPictureActivity.class));
                 break;
             default:
                 break;

@@ -9,7 +9,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
@@ -24,7 +23,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.ImageView;
 
-import com.zhanghaochen.smalldemos.beans.TextBitmap;
+import com.zhanghaochen.smalldemos.utils.CustomerViewUtils;
 import com.zhanghaochen.smalldemos.utils.SysUtils;
 
 import java.util.ArrayList;
@@ -36,47 +35,65 @@ import java.util.List;
 @SuppressLint("AppCompatCustomView")
 public class DoodleView extends ImageView implements LifecycleObserver {
     private static final String TAG = "DoodleView";
+
+    private float mValidRadius = SysUtils.convertDpToPixel(2);
+
     private DoodleCallback mCallBack;
+
     private int mViewWidth, mViewHeight;
-
-    private float mDotRadius = SysUtils.convertDpToPixel(5);
-
     /**
-     * 暂时的画笔
+     * 可拖动的点的半径
+     */
+    private float mDotRadius = SysUtils.convertDpToPixel(8);
+    /**
+     * 暂时的涂鸦画笔
      */
     private Paint mTempPaint;
     /**
-     * 暂时的路径
+     * 暂时的涂鸦路径
      */
     private Path mTempPath;
-    private Paint mMosaicPaint;
+    /**
+     * 暂时的马赛克路径
+     */
+    private Path mTempMosaicPath;
+    private Paint mTempMosaicPaint;
+    /**
+     * 暂时的图形实例，用来move时实时画路径
+     */
+    private DrawGraphBean mTempGraphBean;
     /**
      * 画笔的颜色
      */
-    private int mPaintColor = Color.RED;
+    private int mPaintColor = Color.WHITE;
+
+    private Paint mMosaicPaint;
     /**
      * 画笔的粗细
      */
-    private int mPaintWidth = SysUtils.convertDpToPixel(5);
+    private int mPaintWidth = SysUtils.convertDpToPixel(3);
+    /**
+     * 图形的当前操作模式
+     */
+    private MODE mGraphMode = MODE.NONE;
+
     private Paint mBitmapPaint;
     private Paint mGraphRectPaint;
     private Paint mDotPaint;
+
     private Bitmap mMoasicBitmap;
     private Bitmap mOriginBitmap;
+
     private MODE mMode = MODE.NONE;
-    private MODE mTextMode = MODE.NONE;
-    private MODE mGraphMode = MODE.NONE;
+
     private GRAPH_TYPE mCurrentGraphType = GRAPH_TYPE.RECT;
     private ArrayList<DrawGraphBean> mGraphPath = new ArrayList<>();
-    private DrawGraphBean mCurrentGraphBean;
+
     /**
      * 是否可编辑
      */
     private boolean mIsEditable = false;
-    /**
-     * 所有的路径
-     */
-    private ArrayList<MODE> mPaths = new ArrayList<>();
+
     /**
      * 涂鸦的路径
      */
@@ -85,16 +102,26 @@ public class DoodleView extends ImageView implements LifecycleObserver {
      * 马赛克路径
      */
     private ArrayList<DrawPathBean> mMosaicPath = new ArrayList<>();
-    private ArrayList<TextBitmap> mTextBitmaps = new ArrayList<>();
-    private TextBitmap mCurrentTextBitmap;
-    private Matrix mCurrentMatrix = new Matrix();
-    private boolean mIsClickOnText = false;
+    /**
+     * 当前选中的图形
+     */
+    private DrawGraphBean mCurrentGraphBean;
+    /**
+     * 是否点击到图形了
+     */
     private boolean mIsClickOnGraph = false;
+    /**
+     * 区分点击和滑动
+     */
+    private float mDelaX, mDelaY;
+
     private float mStartX, mStartY;
     private float mMoveX, mMoveY;
 
-    // 区分点击和滑动
-    private float mDelaX, mDelaY;
+    public DoodleView setCallBack(DoodleCallback callBack) {
+        this.mCallBack = callBack;
+        return this;
+    }
 
     public DoodleView(Context context) {
         super(context);
@@ -123,13 +150,10 @@ public class DoodleView extends ImageView implements LifecycleObserver {
         // 按照路径和画笔画图
         // 先画马赛克
         drawMosaicPath(canvas);
-        // 再画图形
-        drawGraphs(canvas);
         // 再画涂鸦
         drawDoodlePath(canvas);
-        // 最后画文字
-        // todo 关闭绘制文字功能
-//        drawTextBitmap(canvas);
+        // 再画图形
+        drawGraphs(canvas);
     }
 
     /**
@@ -141,32 +165,121 @@ public class DoodleView extends ImageView implements LifecycleObserver {
                 canvas.drawPath(pathBean.path, pathBean.paint);
             }
         }
-    }
-
-    public DoodleView setCallBack(DoodleCallback callBack) {
-        this.mCallBack = callBack;
-        return this;
+        if (mTempPath != null && mTempPaint != null) {
+            canvas.drawPath(mTempPath, mTempPaint);
+        }
     }
 
     /**
-     * 添加文字功能， 暂时关闭
+     * 画马赛克内容
      */
-    private void addTextBitmap(TextBitmap textBitmap) {
-        if (textBitmap != null && mViewWidth > 0 && mViewHeight > 0) {
-            textBitmap.matrix.postTranslate(mViewWidth / 2 - textBitmap.getBitmap().getWidth() / 2,
-                    mViewHeight / 2 - textBitmap.getBitmap().getHeight() / 2);
-            float[] values = new float[9];
-            textBitmap.matrix.getValues(values);
+    private void drawMosaicPath(Canvas canvas) {
+        if (mMoasicBitmap != null) {
+            // 保存图层
+            int layerCount = canvas.saveLayer(0, 0, mViewWidth, mViewHeight, null, Canvas.ALL_SAVE_FLAG);
+            if (mMosaicPath.size() > 0) {
+                for (DrawPathBean mosaicPath : mMosaicPath) {
+                    canvas.drawPath(mosaicPath.path, mosaicPath.paint);
+                }
+            }
+            if (mTempMosaicPath != null && mTempMosaicPaint != null) {
+                canvas.drawPath(mTempMosaicPath, mTempMosaicPaint);
+            }
+            // 进行图层的合并
+            canvas.drawBitmap(mMoasicBitmap, 0, 0, mMosaicPaint);
+            canvas.restoreToCount(layerCount);
+        }
+    }
 
-            float transX = values[Matrix.MTRANS_X];
-            float transY = values[Matrix.MTRANS_Y];
-            float width = values[Matrix.MSCALE_X] * textBitmap.getBitmap().getWidth();
-            float height = values[Matrix.MSCALE_Y] * textBitmap.getBitmap().getHeight();
+    /**
+     * 画所有图形
+     */
+    private void drawGraphs(Canvas canvas) {
+        if (mGraphPath.size() > 0) {
+            for (int i = 0; i < mGraphPath.size(); i++) {
+                DrawGraphBean graphBean = mGraphPath.get(i);
+                if (graphBean.isPass) {
+                    drawGraph(canvas, graphBean);
 
-            // 给文字所占的位置框个框
-            textBitmap.rectF = new RectF(0, 0, width, height);
-            textBitmap.matrix.mapRect(textBitmap.rectF);
-            this.mTextBitmaps.add(textBitmap);
+                    // 给最后一个画个框(直线除外）
+                    if (mIsClickOnGraph && i == mGraphPath.size() - 1) {
+                        if (graphBean.type == GRAPH_TYPE.LINE) {
+                            canvas.drawPath(getLineRectPath(graphBean), mGraphRectPaint);
+                            // 再给起点终点画圆
+                            canvas.drawCircle(graphBean.startX, graphBean.startY, mDotRadius, mDotPaint);
+                            canvas.drawCircle(graphBean.endX, graphBean.endY, mDotRadius, mDotPaint);
+                        } else {
+                            canvas.drawRect(graphBean.startX, graphBean.startY, graphBean.endX, graphBean.endY, mGraphRectPaint);
+                            // 再给起点终点画个圆
+                            canvas.drawCircle(graphBean.startX, graphBean.startY, mDotRadius, mDotPaint);
+                            canvas.drawCircle(graphBean.endX, graphBean.endY, mDotRadius, mDotPaint);
+                        }
+                    }
+                }
+            }
+        }
+        if (mTempGraphBean != null) {
+            drawGraph(canvas, mTempGraphBean);
+        }
+    }
+
+    /**
+     * 画某个图形
+     *
+     * @param canvas    canvas
+     * @param graphBean graphBean
+     */
+    private void drawGraph(Canvas canvas, DrawGraphBean graphBean) {
+        if (graphBean.isPass) {
+            if (graphBean.type == GRAPH_TYPE.RECT) {
+                // 矩形
+                graphBean.paint.setStyle(Paint.Style.STROKE);
+                canvas.drawRect(graphBean.startX, graphBean.startY, graphBean.endX, graphBean.endY, graphBean.paint);
+            } else if (graphBean.type == GRAPH_TYPE.OVAL) {
+                // 椭圆
+                graphBean.paint.setStyle(Paint.Style.STROKE);
+                canvas.drawOval(new RectF(graphBean.startX, graphBean.startY, graphBean.endX, graphBean.endY), graphBean.paint);
+            } else if (graphBean.type == GRAPH_TYPE.ARROW) {
+                // 箭头
+                graphBean.paint.setStyle(Paint.Style.FILL);
+                drawArrow(graphBean.startX, graphBean.startY, graphBean.endX, graphBean.endY, canvas, graphBean.paint);
+            } else if (graphBean.type == GRAPH_TYPE.LINE) {
+                // 直线
+                graphBean.paint.setStyle(Paint.Style.FILL);
+                canvas.drawLine(graphBean.startX, graphBean.startY, graphBean.endX, graphBean.endY, graphBean.paint);
+            } else if (graphBean.type == GRAPH_TYPE.DIRECT_LINE) {
+                // 垂直或水平的直线
+                graphBean.paint.setStyle(Paint.Style.FILL);
+                canvas.drawLine(graphBean.startX, graphBean.startY, graphBean.endX, graphBean.endY, graphBean.paint);
+            }
+        }
+    }
+
+    private void setModePaint(MODE mode) {
+        if (mode == MODE.DOODLE_MODE) {
+            mTempPaint = new Paint();
+            mTempPaint.setAntiAlias(true);
+            mTempPaint.setColor(mPaintColor);
+            mTempPaint.setStyle(Paint.Style.STROKE);
+            mTempPaint.setStrokeWidth(mPaintWidth);
+            mTempPaint.setStrokeCap(Paint.Cap.ROUND);
+            mTempPaint.setStrokeJoin(Paint.Join.ROUND);
+        } else if (mode == MODE.MOSAIC_MODE) {
+            mTempMosaicPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mTempMosaicPaint.setAntiAlias(true);
+            mTempMosaicPaint.setDither(true);
+            mTempMosaicPaint.setStyle(Paint.Style.STROKE);
+            mTempMosaicPaint.setTextAlign(Paint.Align.CENTER);
+            mTempMosaicPaint.setStrokeCap(Paint.Cap.ROUND);
+            mTempMosaicPaint.setStrokeJoin(Paint.Join.ROUND);
+            mTempMosaicPaint.setStrokeWidth(mPaintWidth * 2);
+        } else if (mode == MODE.GRAPH_MODE) {
+            mTempPaint = new Paint();
+            mTempPaint.setAntiAlias(true);
+            mTempPaint.setColor(mPaintColor);
+            mTempPaint.setStrokeWidth(mPaintWidth);
+            mTempPaint.setStrokeCap(Paint.Cap.ROUND);
+            mTempPaint.setStrokeJoin(Paint.Join.ROUND);
         }
     }
 
@@ -197,7 +310,6 @@ public class DoodleView extends ImageView implements LifecycleObserver {
 
     private void initOriginBitmap() {
         if (mOriginBitmap != null && mViewHeight > 0 && mViewWidth > 0) {
-//            mOriginBitmap = ((BitmapDrawable) drawable).getBitmap();
             mOriginBitmap = Bitmap.createScaledBitmap(mOriginBitmap, mViewWidth, mViewHeight, true);
 
             Log.d(TAG, "onSizeChanged:w:" + mViewWidth + "//h:" + mViewHeight);
@@ -227,165 +339,25 @@ public class DoodleView extends ImageView implements LifecycleObserver {
         }
     }
 
-    /**
-     * 画马赛克内容
-     */
-    private void drawMosaicPath(Canvas canvas) {
-        if (mMosaicPath.size() > 0 && mMoasicBitmap != null) {
-            // 保存图层
-            int layerCount = canvas.saveLayer(0, 0, mViewWidth, mViewHeight, null, Canvas.ALL_SAVE_FLAG);
-            for (DrawPathBean mosaicPath : mMosaicPath) {
-                canvas.drawPath(mosaicPath.path, mosaicPath.paint);
-            }
-            // 进行图层的合并
-            canvas.drawBitmap(mMoasicBitmap, 0, 0, mMosaicPaint);
-            canvas.restoreToCount(layerCount);
-        }
-    }
-
-    /**
-     * 画图形
-     */
-    private void drawGraphs(Canvas canvas) {
-        if (mGraphPath.size() > 0) {
-            for (int i = 0; i < mGraphPath.size(); i++) {
-                DrawGraphBean graphBean = mGraphPath.get(i);
-                if (graphBean.isPass) {
-                    if (graphBean.type == GRAPH_TYPE.RECT) {
-                        graphBean.paint.setStyle(Paint.Style.STROKE);
-                        canvas.drawRect(graphBean.startX, graphBean.startY, graphBean.endX, graphBean.endY, graphBean.paint);
-                    } else if (graphBean.type == GRAPH_TYPE.OVAL) {
-                        graphBean.paint.setStyle(Paint.Style.STROKE);
-                        canvas.drawOval(new RectF(graphBean.startX, graphBean.startY, graphBean.endX, graphBean.endY), graphBean.paint);
-                    } else if (graphBean.type == GRAPH_TYPE.CIRCLE) {
-                        graphBean.paint.setStyle(Paint.Style.STROKE);
-                        // 计算半径
-                        float radius = Math.min(Math.abs(graphBean.startX - graphBean.endX), Math.abs(graphBean.startY - graphBean.endY)) / 2;
-                        float centerX, centerY;
-                        centerX = graphBean.endX >= graphBean.startX ? graphBean.startX + radius : graphBean.startX - radius;
-                        centerY = graphBean.endY >= graphBean.startY ? graphBean.startY + radius : graphBean.startY - radius;
-                        canvas.drawCircle(centerX, centerY, radius, graphBean.paint);
-                    } else if (graphBean.type == GRAPH_TYPE.ARROW) {
-                        graphBean.paint.setStyle(Paint.Style.FILL);
-                        drawArrow(graphBean.startX, graphBean.startY, graphBean.endX, graphBean.endY, canvas, graphBean.paint);
-                    }
-
-                    // 给最后一个画个框
-                    if (mIsClickOnGraph && i == mGraphPath.size() - 1) {
-                        canvas.drawRect(graphBean.startX, graphBean.startY, graphBean.endX, graphBean.endY, mGraphRectPaint);
-                        // 再给起点终点画个圆
-                        canvas.drawCircle(graphBean.startX, graphBean.startY, mDotRadius, mDotPaint);
-                        canvas.drawCircle(graphBean.endX, graphBean.endY, mDotRadius, mDotPaint);
-                    }
-                }
-            }
-        }
-    }
-
-    private void drawTextBitmap(Canvas canvas) {
-        Paint pp = new Paint();
-        pp.setAntiAlias(true);
-        pp.setStyle(Paint.Style.STROKE);
-        pp.setColor(Color.RED);
-        if (mTextBitmaps.size() > 0) {
-            for (int i = 0; i < mTextBitmaps.size(); i++) {
-                TextBitmap textBitmap = mTextBitmaps.get(i);
-                canvas.drawBitmap(textBitmap.getBitmap(), textBitmap.matrix, textBitmap.paint);
-                if (i == mTextBitmaps.size() - 1 && textBitmap.rectF != null) {
-                    canvas.drawRect(textBitmap.rectF, pp);
-                }
-            }
-        }
-    }
-
-    private void setModePaint(MODE mode) {
-        if (mode == MODE.DOODLE_MODE) {
-            mTempPaint = new Paint();
-            mTempPaint.setAntiAlias(true);
-            mTempPaint.setColor(mPaintColor);
-            mTempPaint.setStyle(Paint.Style.STROKE);
-            mTempPaint.setStrokeWidth(mPaintWidth);
-            mTempPaint.setStrokeCap(Paint.Cap.ROUND);
-            mTempPaint.setStrokeJoin(Paint.Join.ROUND);
-        } else if (mode == MODE.MOSAIC_MODE) {
-            mTempPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mTempPaint.setAntiAlias(true);
-            mTempPaint.setDither(true);
-            mTempPaint.setStyle(Paint.Style.STROKE);
-            mTempPaint.setTextAlign(Paint.Align.CENTER);
-            mTempPaint.setStrokeCap(Paint.Cap.ROUND);
-            mTempPaint.setStrokeJoin(Paint.Join.ROUND);
-            mTempPaint.setStrokeWidth(mPaintWidth * 2);
-        } else if (mode == MODE.GRAPH_MODE) {
-            mTempPaint = new Paint();
-            mTempPaint.setAntiAlias(true);
-            mTempPaint.setColor(mPaintColor);
-            mTempPaint.setStrokeWidth(mPaintWidth);
-            mTempPaint.setStrokeCap(Paint.Cap.ROUND);
-            mTempPaint.setStrokeJoin(Paint.Join.ROUND);
-        }
-    }
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (mIsEditable) {
             mMoveX = event.getX();
             mMoveY = event.getY();
-            int action = event.getAction() & MotionEvent.ACTION_MASK;
+            int action = event.getAction();
             if (action == MotionEvent.ACTION_DOWN) {
+                Log.d(TAG, "ACTION_DOWN");
                 mStartX = mMoveX;
                 mStartY = mMoveY;
                 mDelaX = 0;
                 mDelaY = 0;
-                Log.d(TAG, "ACTION_DOWN");
 
-                // 正常的涂鸦等绘制操作
-                if (!mIsClickOnText && !mIsClickOnGraph) {
-                    if (mMode == MODE.GRAPH_MODE) {
-                        setModePaint(mMode);
-
-                        // 添加到队列中
-                        DrawGraphBean graphBean = new DrawGraphBean(mStartX, mStartY, mStartX, mStartY, mCurrentGraphType, mTempPaint);
-
-                        mPaths.add(mMode);
-                        mGraphPath.add(graphBean);
-                    } else if (mMode == MODE.DOODLE_MODE || mMode == MODE.MOSAIC_MODE) {
-                        // 设置对应mode的画笔
-                        setModePaint(mMode);
-
-                        mTempPath = new Path();
-
-                        mTempPath.moveTo(mStartX, mStartY);
-
-                        // 把path加到队列中
-                        DrawPathBean pathBean = new DrawPathBean(mTempPath, mTempPaint, mMode);
-                        mPaths.add(mMode);
-                        if (mMode == MODE.DOODLE_MODE) {
-                            mDoodlePath.add(pathBean);
-                        } else if (mMode == MODE.MOSAIC_MODE) {
-                            mMosaicPath.add(pathBean);
-                        }
-                    }
-                } else if (mIsClickOnGraph && mCurrentGraphBean != null && mGraphPath.size() > 0) {
-                    mCurrentGraphBean.rectFList.add(new RectF(mCurrentGraphBean.starPoint.x, mCurrentGraphBean.starPoint.y,
-                            mCurrentGraphBean.endPoint.x, mCurrentGraphBean.endPoint.y));
-                    mCurrentGraphBean.clickPoint.set(mMoveX, mMoveY);
-                    // 判断是否点击到了起点或者终点
-                    RectF startDotRect = new RectF(mCurrentGraphBean.startX - mDotRadius, mCurrentGraphBean.startY - mDotRadius,
-                            mCurrentGraphBean.startX + mDotRadius, mCurrentGraphBean.startY + mDotRadius);
-                    RectF endDotRect = new RectF(mCurrentGraphBean.endX - mDotRadius, mCurrentGraphBean.endY - mDotRadius,
-                            mCurrentGraphBean.endX + mDotRadius, mCurrentGraphBean.endY + mDotRadius);
-                    if (startDotRect.contains(mMoveX, mMoveY)) {
-                        Log.d(TAG, "点击到起始点了");
-                        mGraphMode = MODE.DRAG_START;
-                    } else if (endDotRect.contains(mMoveX, mMoveY)) {
-                        Log.d(TAG, "点击到终点了");
-                        mGraphMode = MODE.DRAG_END;
-                    } else {
-                        mGraphMode = MODE.DRAG;
-                    }
+                // 正常的画图操作
+                if (!mIsClickOnGraph) {
+                    touchDownNormalPath();
+                } else if (mCurrentGraphBean != null && mGraphPath.size() > 0) {
+                    touchDownInitGraphOperate();
                 }
-
                 if (mCallBack != null) {
                     mCallBack.onDrawStart();
                 }
@@ -393,93 +365,10 @@ public class DoodleView extends ImageView implements LifecycleObserver {
             } else if (action == MotionEvent.ACTION_MOVE) {
                 mDelaX += Math.abs(mMoveX - mStartX);
                 mDelaY += Math.abs(mMoveY - mStartY);
-                if (!mIsClickOnText && !mIsClickOnGraph) {
-                    // 使用队列中最后一条path进行操作
-                    if (mMode == MODE.DOODLE_MODE && mDoodlePath.size() > 0) {
-                        mDoodlePath.get(mDoodlePath.size() - 1).path.lineTo(mMoveX, mMoveY);
-                    } else if (mMode == MODE.MOSAIC_MODE && mMosaicPath.size() > 0) {
-                        mMosaicPath.get(mMosaicPath.size() - 1).path.lineTo(mMoveX, mMoveY);
-                    } else if (mMode == MODE.GRAPH_MODE && mGraphPath.size() > 0) {
-                        // 只有移动了足够距离，才算合格的图形
-                        if (mDelaX > SysUtils.convertDpToPixel(5) || mDelaY > SysUtils.convertDpToPixel(5)) {
-                            DrawGraphBean tempBean = mGraphPath.get(mGraphPath.size() - 1);
-                            tempBean.isPass = true;
-                            tempBean.endX = mMoveX;
-                            tempBean.endY = mMoveY;
-                            tempBean.endPoint.x = mMoveX;
-                            tempBean.endPoint.y = mMoveY;
-                        }
-                    }
-                } else if (mIsClickOnText && !mIsClickOnGraph && mCurrentTextBitmap != null) {
-                    // 如果是拖拽模式
-                    if (mTextMode == MODE.DRAG) {
-                        float dx = mMoveX - mCurrentTextBitmap.startPoint.x;
-                        float dy = mMoveY - mCurrentTextBitmap.startPoint.y;
-                        // 在没有进行移动之前的位置基础上进行移动
-                        mCurrentTextBitmap.matrix.set(mCurrentMatrix);
-                        mCurrentTextBitmap.matrix.postTranslate(dx, dy);
-                        Log.d(TAG, "拖动rect" + mCurrentTextBitmap.rectF);
-                    } else if (mTextMode == MODE.ZOOM) {
-                        // 如果是旋转和缩放模式
-                        // 结束距离
-                        float endDis = distance(event);
-                        mCurrentTextBitmap.rotation = rotation(event) - mCurrentTextBitmap.oldRotation;
-                        if (endDis > 10f) {
-                            // 获取缩放倍数
-                            float scale = endDis / mCurrentTextBitmap.startDis;
-                            mCurrentTextBitmap.matrix.set(mCurrentMatrix);
-                            mCurrentTextBitmap.matrix.postScale(scale, scale, mCurrentTextBitmap.midPoint.x, mCurrentTextBitmap.midPoint.y);
-                            mCurrentTextBitmap.matrix.postRotate(mCurrentTextBitmap.rotation, mCurrentTextBitmap.midPoint.x, mCurrentTextBitmap.midPoint.y);
-                            Log.d(TAG, "scale:" + scale);
-                        }
-                    }
-                } else if (mIsClickOnGraph && !mIsClickOnText && mCurrentGraphBean != null) {
-                    float dx = mMoveX - mCurrentGraphBean.clickPoint.x;
-                    float dy = mMoveY - mCurrentGraphBean.clickPoint.y;
-                    // 如果是拖拽模式
-                    if (mGraphMode == MODE.DRAG) {
-                        int rectSize = mCurrentGraphBean.rectFList.size();
-                        if (rectSize > 0) {
-                            RectF tempRectF = mCurrentGraphBean.rectFList.get((rectSize - 1));
-                            mCurrentGraphBean.startX = mCurrentGraphBean.starPoint.x + dx;
-                            mCurrentGraphBean.startY = mCurrentGraphBean.starPoint.y + dy;
-                            mCurrentGraphBean.endX = mCurrentGraphBean.endPoint.x + dx;
-                            mCurrentGraphBean.endY = mCurrentGraphBean.endPoint.y + dy;
-                            tempRectF.left = mCurrentGraphBean.startX;
-                            tempRectF.top = mCurrentGraphBean.startY;
-                            tempRectF.right = mCurrentGraphBean.endX;
-                            tempRectF.bottom = mCurrentGraphBean.endY;
-                            Log.d(TAG, "拖动图形rect");
-                        }
-                    } else if (mGraphMode == MODE.DRAG_START) {
-                        // 如果是拖动起始点
-                        // 只需要变化起始点的坐标即可
-                        int rectSize = mCurrentGraphBean.rectFList.size();
-                        if (rectSize > 0) {
-                            RectF tempRectF = mCurrentGraphBean.rectFList.get((rectSize - 1));
-                            mCurrentGraphBean.startX = mCurrentGraphBean.starPoint.x + dx;
-                            mCurrentGraphBean.startY = mCurrentGraphBean.starPoint.y + dy;
-                            tempRectF.left = mCurrentGraphBean.startX;
-                            tempRectF.top = mCurrentGraphBean.startY;
-                            tempRectF.right = mCurrentGraphBean.endX;
-                            tempRectF.bottom = mCurrentGraphBean.endY;
-                            Log.d(TAG, "拖动起始点");
-                        }
-                    } else if (mGraphMode == MODE.DRAG_END) {
-                        // 如果是拖动终点
-                        // 只需要变化终点的坐标即可
-                        int rectSize = mCurrentGraphBean.rectFList.size();
-                        if (rectSize > 0) {
-                            RectF tempRectF = mCurrentGraphBean.rectFList.get((rectSize - 1));
-                            mCurrentGraphBean.endX = mCurrentGraphBean.endPoint.x + dx;
-                            mCurrentGraphBean.endY = mCurrentGraphBean.endPoint.y + dy;
-                            tempRectF.left = mCurrentGraphBean.startX;
-                            tempRectF.top = mCurrentGraphBean.startY;
-                            tempRectF.right = mCurrentGraphBean.endX;
-                            tempRectF.bottom = mCurrentGraphBean.endY;
-                            Log.d(TAG, "拖动终点");
-                        }
-                    }
+                if (!mIsClickOnGraph) {
+                    touchMoveNormalDraw();
+                } else if (mCurrentGraphBean != null && mGraphPath.size() > 0) {
+                    touchMoveGraphOperate();
                 }
 
                 if (mCallBack != null) {
@@ -487,74 +376,45 @@ public class DoodleView extends ImageView implements LifecycleObserver {
                 }
                 postInvalidate();
                 return true;
-            } else if (action == MotionEvent.ACTION_POINTER_DOWN) {
-                Log.d(TAG, "ACTION_POINTER_DOWN");
-                // 当屏幕上还有触点（手指），再有一个手指压下屏幕
-                if (mIsClickOnText && mCurrentTextBitmap != null) {
-                    mTextMode = MODE.ZOOM;
-                    mCurrentTextBitmap.oldRotation = rotation(event);
-                    mCurrentTextBitmap.startDis = distance(event);
-                    if (mCurrentTextBitmap.startDis > 10f) {
-                        mCurrentTextBitmap.midPoint = mid(event);
-                        // 记录textbitmap当前的缩放倍数
-                        mCurrentMatrix.set(mCurrentTextBitmap.matrix);
-                    }
-                }
-                return true;
             } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
                 Log.d(TAG, "ACTION_UP");
-                if (mDelaX < 30 && mDelaY < 30) {
+                if (mDelaX < mValidRadius && mDelaY < mValidRadius) {
                     // 是点击事件
-                    Log.d(TAG, "CLICK!!");
-                    // 倒过来循环图形列表
-                    int clickIndex = -1;
-                    for (int i = mGraphPath.size() - 1; i > -1; i--) {
-                        DrawGraphBean graphBean = mGraphPath.get(i);
-                        if (graphBean != null) {
-                            RectF rectF = new RectF(Math.min(graphBean.startX, graphBean.endX),
-                                    Math.min(graphBean.startY, graphBean.endY),
-                                    Math.max(graphBean.startX, graphBean.endX),
-                                    Math.max(graphBean.startY, graphBean.endY));
-
-                            // 看看点击的点是否在这个框框里(这个框框的判定很奇怪，需要坐标从小到大）
-                            if (rectF.contains(mMoveX, mMoveY)) {
-                                // 点击到文字了，说明接下来会进行图形操作
-                                mCurrentGraphBean = graphBean;
-                                Log.d(TAG, "点击到文字啦！" + rectF);
-                                mIsClickOnGraph = true;
-                                mGraphMode = MODE.DRAG;
-                                clickIndex = i;
-                                // 直接跳出当前循环
-                                break;
-                            } else {
-                                mIsClickOnGraph = false;
-                                mGraphMode = MODE.NONE;
-                            }
-                        } else {
-                            mIsClickOnGraph = false;
-                            mGraphMode = MODE.NONE;
-                        }
-                    }
-                    if (mGraphPath.size() <= 0) {
-                        mIsClickOnGraph = false;
-                        mGraphMode = MODE.NONE;
-                    }
-
-                    // 把在操作的图形添加到栈底
-                    if (mIsClickOnGraph && !mIsClickOnText && mCurrentGraphBean != null && clickIndex > -1 && clickIndex < mGraphPath.size()) {
-                        mGraphPath.remove(clickIndex);
-                        mGraphPath.add(mCurrentGraphBean);
-                    }
-                    postInvalidate();
-                    return false;
-                }
-                if (!mIsClickOnText && !mIsClickOnGraph) {
+                    judgeGraphClick();
                     mTempPath = null;
                     mTempPaint = null;
+                    mTempMosaicPath = null;
+                    mTempMosaicPaint = null;
+                    mTempGraphBean = null;
+                    postInvalidate();
+                    if (mCallBack != null) {
+                        mCallBack.onDrawComplete();
+                    }
+                    return false;
                 }
+                // 非点击，正常Up
+                if (!mIsClickOnGraph) {
+                    if (mMode == MODE.DOODLE_MODE) {
+                        // 把path加到队列中
+                        DrawPathBean pathBean = new DrawPathBean(mTempPath, mTempPaint, MODE.DOODLE_MODE);
+                        mDoodlePath.add(pathBean);
+                    } else if (mMode == MODE.MOSAIC_MODE) {
+                        // 把path加到队列中
+                        DrawPathBean pathBean = new DrawPathBean(mTempMosaicPath, mTempMosaicPaint, MODE.MOSAIC_MODE);
+                        mMosaicPath.add(pathBean);
+                    } else if (mMode == MODE.GRAPH_MODE) {
+                        mGraphPath.add(mTempGraphBean);
+                    }
+                    mTempPath = null;
+                    mTempPaint = null;
+                    mTempMosaicPath = null;
+                    mTempMosaicPaint = null;
+                    mTempGraphBean = null;
+                }
+
                 if (mIsClickOnGraph && mCurrentGraphBean != null) {
-                    mCurrentGraphBean.starPoint.x = mCurrentGraphBean.startX;
-                    mCurrentGraphBean.starPoint.y = mCurrentGraphBean.startY;
+                    mCurrentGraphBean.startPoint.x = mCurrentGraphBean.startX;
+                    mCurrentGraphBean.startPoint.y = mCurrentGraphBean.startY;
                     mCurrentGraphBean.endPoint.x = mCurrentGraphBean.endX;
                     mCurrentGraphBean.endPoint.y = mCurrentGraphBean.endY;
                     mGraphMode = MODE.DRAG;
@@ -562,20 +422,309 @@ public class DoodleView extends ImageView implements LifecycleObserver {
                     mGraphMode = MODE.NONE;
                     mCurrentGraphBean = null;
                 }
-                mIsClickOnText = false;
-                mTextMode = MODE.NONE;
-                mCurrentTextBitmap = null;
+
                 if (mCallBack != null) {
                     mCallBack.onDrawComplete();
                 }
-                return true;
-            } else if (action == MotionEvent.ACTION_POINTER_UP) {
-                Log.d(TAG, "ACTION_POINTER_UP");
-                mTextMode = MODE.NONE;
+                postInvalidate();
                 return true;
             }
         }
         return super.onTouchEvent(event);
+    }
+
+    /**
+     * 按下时，初始化绘图参数
+     */
+    private void touchDownNormalPath() {
+        if (mMode == MODE.GRAPH_MODE) {
+            setModePaint(mMode);
+            // 创建一个对象
+            mTempGraphBean = new DrawGraphBean(mStartX, mStartY, mStartX, mStartY, mCurrentGraphType, mTempPaint);
+        } else if (mMode == MODE.DOODLE_MODE) {
+            // 设置对应mode的画笔
+            setModePaint(mMode);
+            mTempPath = new Path();
+            mTempPath.moveTo(mStartX, mStartY);
+        } else if (mMode == MODE.MOSAIC_MODE) {
+            setModePaint(mMode);
+            mTempMosaicPath = new Path();
+            mTempMosaicPath.moveTo(mStartX, mStartY);
+        }
+    }
+
+    /**
+     * 按下时，初始化正在操作的图形
+     */
+    private void touchDownInitGraphOperate() {
+        // 此时，在操作某个图形
+        mCurrentGraphBean.rectFList.add(new RectF(mCurrentGraphBean.startPoint.x, mCurrentGraphBean.startPoint.y,
+                mCurrentGraphBean.endPoint.x, mCurrentGraphBean.endPoint.y));
+        mCurrentGraphBean.clickPoint.set(mMoveX, mMoveY);
+        // 判断是否点击到了起点或者终点
+        RectF startDotRect = new RectF(mCurrentGraphBean.startX - mDotRadius, mCurrentGraphBean.startY - mDotRadius,
+                mCurrentGraphBean.startX + mDotRadius, mCurrentGraphBean.startY + mDotRadius);
+        RectF endDotRect = new RectF(mCurrentGraphBean.endX - mDotRadius, mCurrentGraphBean.endY - mDotRadius,
+                mCurrentGraphBean.endX + mDotRadius, mCurrentGraphBean.endY + mDotRadius);
+        if (startDotRect.contains(mMoveX, mMoveY)) {
+            Log.d(TAG, "点击到起始点了");
+            mGraphMode = MODE.DRAG_START;
+        } else if (endDotRect.contains(mMoveX, mMoveY)) {
+            Log.d(TAG, "点击到终点了");
+            mGraphMode = MODE.DRAG_END;
+        } else {
+            mGraphMode = MODE.DRAG;
+        }
+    }
+
+    /**
+     * 移动时，绘制路径或者图形
+     */
+    private void touchMoveNormalDraw() {
+        // 使用队列中最后一条path进行操作
+        if (mMode == MODE.DOODLE_MODE) {
+            mTempPath.lineTo(mMoveX, mMoveY);
+        } else if (mMode == MODE.MOSAIC_MODE) {
+            mTempMosaicPath.lineTo(mMoveX, mMoveY);
+        } else if (mMode == MODE.GRAPH_MODE) {
+            // 只操作暂时的图形对象
+            if (mTempGraphBean != null) {
+                // 只有移动了足够距离，才算合格的图形
+                if (mDelaX > mValidRadius || mDelaY > mValidRadius) {
+                    mTempGraphBean.isPass = true;
+                    if (mTempGraphBean.type == GRAPH_TYPE.DIRECT_LINE) {
+                        // 由于笔直的线的特殊性，需要特殊处理
+                        float[] point = getDirectLineEndPoint(mTempGraphBean.startX, mTempGraphBean.startY, mMoveX, mMoveY);
+                        mTempGraphBean.endX = point[0];
+                        mTempGraphBean.endY = point[1];
+                        mTempGraphBean.endPoint.x = point[0];
+                        mTempGraphBean.endPoint.y = point[1];
+                        // 此时的rectList应该只有一条数据
+                        if (mTempGraphBean.rectFList.size() == 1) {
+                            // 它对应的rect要么是水平的，要么是垂直的
+                            RectF rectF = mTempGraphBean.rectFList.get(0);
+                            if (mTempGraphBean.startY == mTempGraphBean.endY) {
+                                // 水平的直线
+                                rectF.left = mTempGraphBean.startX;
+                                rectF.top = mTempGraphBean.startY - mDotRadius;
+                                rectF.right = mTempGraphBean.endX;
+                                rectF.bottom = mTempGraphBean.startY + mDotRadius;
+                            } else {
+                                // 垂直的直线
+                                rectF.left = mTempGraphBean.startX - mDotRadius;
+                                rectF.top = mTempGraphBean.startY;
+                                rectF.right = mTempGraphBean.startX + mDotRadius;
+                                rectF.bottom = mTempGraphBean.endY;
+                            }
+                        }
+                    } else {
+                        mTempGraphBean.endX = mMoveX;
+                        mTempGraphBean.endY = mMoveY;
+                        mTempGraphBean.endPoint.x = mMoveX;
+                        mTempGraphBean.endPoint.y = mMoveY;
+                        // 此时的rectList应该只有一条数据
+                        if (mTempGraphBean.rectFList.size() == 1) {
+                            mTempGraphBean.rectFList.get(0).right = mMoveX;
+                            mTempGraphBean.rectFList.get(0).bottom = mMoveY;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 移动图形，包括缩放等
+     */
+    private void touchMoveGraphOperate() {
+        if (mCurrentGraphBean != null && mGraphPath.size() > 0) {
+            float dx = mMoveX - mCurrentGraphBean.clickPoint.x;
+            float dy = mMoveY - mCurrentGraphBean.clickPoint.y;
+            // 如果是拖拽模式
+            changeGraphRect(dx, dy);
+        }
+    }
+
+    /**
+     * 拖拽缩放图形的操作
+     *
+     * @param offsetX x偏移量
+     * @param offsetY y偏移量
+     */
+    private void changeGraphRect(float offsetX, float offsetY) {
+        if (mCurrentGraphBean != null && mGraphPath.size() > 0) {
+            int rectSize = mCurrentGraphBean.rectFList.size();
+            if (rectSize > 0) {
+                RectF tempRectF = mCurrentGraphBean.rectFList.get((rectSize - 1));
+                if (mGraphMode == MODE.DRAG) {
+                    mCurrentGraphBean.startX = mCurrentGraphBean.startPoint.x + offsetX;
+                    mCurrentGraphBean.startY = mCurrentGraphBean.startPoint.y + offsetY;
+                    mCurrentGraphBean.endX = mCurrentGraphBean.endPoint.x + offsetX;
+                    mCurrentGraphBean.endY = mCurrentGraphBean.endPoint.y + offsetY;
+                } else if (mGraphMode == MODE.DRAG_START) {
+                    // 如果是拖动起始点
+                    // 只需要变化起始点的坐标即可
+                    if (mCurrentGraphBean.type == GRAPH_TYPE.DIRECT_LINE) {
+                        // 如果是笔直线，只在该对应方向进行平移
+                        if (mCurrentGraphBean.startX == mCurrentGraphBean.endX) {
+                            // 垂直的直线,x不变，只变化y
+                            mCurrentGraphBean.startY = mCurrentGraphBean.startPoint.y + offsetY;
+                        } else {
+                            // 水平的直线，y不变
+                            mCurrentGraphBean.startX = mCurrentGraphBean.startPoint.x + offsetX;
+                        }
+                    } else {
+                        mCurrentGraphBean.startX = mCurrentGraphBean.startPoint.x + offsetX;
+                        mCurrentGraphBean.startY = mCurrentGraphBean.startPoint.y + offsetY;
+                    }
+                    Log.d(TAG, "拖动起始点");
+                } else if (mGraphMode == MODE.DRAG_END) {
+                    // 如果是拖动终点
+                    // 只需要变化终点的坐标即可
+                    if (mCurrentGraphBean.type == GRAPH_TYPE.DIRECT_LINE) {
+                        // 如果是笔直线，只在该对应方向进行平移
+                        if (mCurrentGraphBean.startX == mCurrentGraphBean.endX) {
+                            // 垂直的直线,x不变，只变化y
+                            mCurrentGraphBean.endY = mCurrentGraphBean.endPoint.y + offsetY;
+                        } else {
+                            // 水平的直线，y不变
+                            mCurrentGraphBean.endX = mCurrentGraphBean.endPoint.x + offsetX;
+                        }
+                    } else {
+                        mCurrentGraphBean.endX = mCurrentGraphBean.endPoint.x + offsetX;
+                        mCurrentGraphBean.endY = mCurrentGraphBean.endPoint.y + offsetY;
+                    }
+                    Log.d(TAG, "拖动终点");
+                }
+                // 更新围绕的rect
+                if (mCurrentGraphBean.type == GRAPH_TYPE.DIRECT_LINE) {
+                    if (mCurrentGraphBean.startX == mCurrentGraphBean.endX) {
+                        // 垂直的直线
+                        tempRectF.left = mCurrentGraphBean.startX - mDotRadius;
+                        tempRectF.top = mCurrentGraphBean.startY;
+                        tempRectF.right = mCurrentGraphBean.startX + mDotRadius;
+                        tempRectF.bottom = mCurrentGraphBean.endY;
+                    } else {
+                        // 水平的直线
+                        tempRectF.left = mCurrentGraphBean.startX;
+                        tempRectF.top = mCurrentGraphBean.startY - mDotRadius;
+                        tempRectF.right = mCurrentGraphBean.endX;
+                        tempRectF.bottom = mCurrentGraphBean.startY + mDotRadius;
+                    }
+                } else {
+                    tempRectF.left = mCurrentGraphBean.startX;
+                    tempRectF.top = mCurrentGraphBean.startY;
+                    tempRectF.right = mCurrentGraphBean.endX;
+                    tempRectF.bottom = mCurrentGraphBean.endY;
+                }
+                Log.d(TAG, "拖动图形rect");
+            }
+        }
+    }
+
+    /**
+     * 判断是否点击到图形，点击到的话，将点击的图形显示在最上层
+     * 改成拖动模式，并设置是否点击图形为true
+     */
+    private void judgeGraphClick() {
+        // 倒过来循环图形列表
+        int clickIndex = -1;
+        // 点击时，默认没选中
+        mIsClickOnGraph = false;
+        mGraphMode = MODE.NONE;
+        // 重要！：当mCurrentGraphBean不为空时，在Down时，会new 一个记录操作的rect，典型的场景就是
+        // 两个图形，第一个选中，此时点击第二个，就会多new 一个rect，因此在mCurrentGraphBean不是null，则需要移除这个多余的操作记录
+        if (mCurrentGraphBean != null) {
+            if (mCurrentGraphBean.rectFList.size() > 1) {
+                mCurrentGraphBean.rectFList.remove(mCurrentGraphBean.rectFList.size() - 1);
+            }
+        }
+        for (int i = mGraphPath.size() - 1; i > -1; i--) {
+            DrawGraphBean graphBean = mGraphPath.get(i);
+            if (graphBean != null) {
+                RectF rectF = null;
+                // 通过rect的contains判断，rect需要左上右下从小到大才能正确判断
+                if (graphBean.type == GRAPH_TYPE.DIRECT_LINE) {
+                    // 笔直的线的x或者y会有之一相等
+                    if (graphBean.rectFList.size() > 0) {
+                        RectF lastedRect = graphBean.rectFList.get(graphBean.rectFList.size() - 1);
+                        rectF = new RectF(Math.min(lastedRect.left, lastedRect.right),
+                                Math.min(lastedRect.top, lastedRect.bottom),
+                                Math.max(lastedRect.left, lastedRect.right),
+                                Math.max(lastedRect.top, lastedRect.bottom));
+                    }
+                } else {
+                    rectF = new RectF(Math.min(graphBean.startX, graphBean.endX),
+                            Math.min(graphBean.startY, graphBean.endY),
+                            Math.max(graphBean.startX, graphBean.endX),
+                            Math.max(graphBean.startY, graphBean.endY));
+                }
+                // 通过rect来判断
+                // 看看点击的点是否在这个框框里(这个框框的判定很奇怪，需要坐标从小到大）
+                if (rectF != null && rectF.contains(mMoveX, mMoveY)) {
+                    // 点击到文字了，说明接下来会进行图形操作，给mCurrentGraphBean赋新值
+                    mCurrentGraphBean = graphBean;
+                    Log.d(TAG, "点击到文字啦！" + rectF);
+                    mIsClickOnGraph = true;
+                    mGraphMode = MODE.DRAG;
+                    clickIndex = i;
+                    // 直接跳出当前循环
+                    break;
+                }
+            } else {
+                mCurrentGraphBean = null;
+                mIsClickOnGraph = false;
+                mGraphMode = MODE.NONE;
+            }
+        }
+        if (mGraphPath.size() <= 0) {
+            mCurrentGraphBean = null;
+            mIsClickOnGraph = false;
+            mGraphMode = MODE.NONE;
+        }
+
+        // 把在操作的图形添加到栈底
+        if (mIsClickOnGraph && mCurrentGraphBean != null && clickIndex > -1 && clickIndex < mGraphPath.size()) {
+            mGraphPath.remove(clickIndex);
+            mGraphPath.add(mCurrentGraphBean);
+        } else {
+            mCurrentGraphBean = null;
+            mIsClickOnGraph = false;
+            mGraphMode = MODE.NONE;
+        }
+    }
+
+    /**
+     * 获取围绕直线的path
+     */
+    private Path getLineRectPath(DrawGraphBean graphBean) {
+        if (graphBean == null) {
+            return null;
+        }
+        Path path = null;
+        if (graphBean.type == GRAPH_TYPE.LINE) {
+            path = new Path();
+            // 由于坐标参照系标准不同，需要进行转化
+            // 获取与x的夹角
+            float radius = getRotation(graphBean.startX, graphBean.startY, graphBean.endX, graphBean.endY);
+            if (radius <= 0) {
+                radius += 180;
+            }
+            radius -= 90;
+            // 转换成canvas的圆坐标系
+            radius += 180;
+            float[] point1 = CustomerViewUtils.getCoordinatePoint(graphBean.startX, graphBean.startY, mDotRadius, radius);
+            float[] point4 = CustomerViewUtils.getCoordinatePoint(graphBean.startX, graphBean.startY, mDotRadius, radius + 180);
+            float[] point2 = CustomerViewUtils.getCoordinatePoint(graphBean.endX, graphBean.endY, mDotRadius, radius);
+            float[] point3 = CustomerViewUtils.getCoordinatePoint(graphBean.endX, graphBean.endY, mDotRadius, radius + 180);
+            path.moveTo(point1[0], point1[1]);
+            path.lineTo(point2[0], point2[1]);
+            path.lineTo(point3[0], point3[1]);
+            path.lineTo(point4[0], point4[1]);
+            path.lineTo(point1[0], point1[1]);
+            path.close();
+        }
+        return path;
     }
 
     /**
@@ -584,21 +733,103 @@ public class DoodleView extends ImageView implements LifecycleObserver {
      * @return 撤销后剩余可以撤销的步骤
      */
     public int revertPath() {
-        int size = mPaths.size();
-        if (size > 0) {
-            // 根据最后一位数的mode，删除对应path
-            MODE lastestMode = mPaths.get(size - 1);
-            if (lastestMode == MODE.DOODLE_MODE && mDoodlePath.size() > 0) {
-                mDoodlePath.remove(mDoodlePath.size() - 1);
-            } else if (lastestMode == MODE.MOSAIC_MODE && mMosaicPath.size() > 0) {
-                mMosaicPath.remove(mMosaicPath.size() - 1);
-            } else if (lastestMode == MODE.GRAPH_MODE && mGraphPath.size() > 0) {
-                mGraphPath.remove(mGraphPath.size() - 1);
+        // 撤销只针对当前模式的撤销，不是所有步骤的撤销
+        int size = 0;
+        if (!mIsClickOnGraph && mMode == MODE.DOODLE_MODE) {
+            size = mDoodlePath.size();
+            if (size > 0) {
+                mDoodlePath.remove(size - 1);
             }
-            mPaths.remove(size - 1);
+        } else if (!mIsClickOnGraph && mMode == MODE.MOSAIC_MODE) {
+            size = mMosaicPath.size();
+            if (size > 0) {
+                mMosaicPath.remove(size - 1);
+            }
+        } else if (mIsClickOnGraph && mCurrentGraphBean != null) {
+            // 如果当前选中了某个图形,但是此处的rectList不能删光，需要保留一条最初的数据
+            size = mCurrentGraphBean.rectFList.size();
+            if (size > 1) {
+                mCurrentGraphBean.rectFList.remove(size - 1);
+                int currentSize = size - 1;
+                // 移除之后，需要给起点和终点重新赋值
+                if (currentSize > 0) {
+                    RectF rectF = mCurrentGraphBean.rectFList.get(currentSize - 1);
+                    if (mCurrentGraphBean.type == GRAPH_TYPE.DIRECT_LINE) {
+                        // 判断水平还是垂直
+                        if (mCurrentGraphBean.startX == mCurrentGraphBean.endX) {
+                            // 垂直的，
+                            mCurrentGraphBean.startY = rectF.top;
+                            mCurrentGraphBean.endY = rectF.bottom;
+                            mCurrentGraphBean.startPoint.y = rectF.top;
+                            mCurrentGraphBean.endPoint.y = rectF.bottom;
+                            mCurrentGraphBean.startX = (rectF.left + rectF.right) / 2;
+                            mCurrentGraphBean.endX = (rectF.left + rectF.right) / 2;
+                            mCurrentGraphBean.startPoint.x = (rectF.left + rectF.right) / 2;
+                            mCurrentGraphBean.endPoint.x = (rectF.left + rectF.right) / 2;
+                        } else {
+                            // 水平的，y相关的都不需要变化
+                            mCurrentGraphBean.startX = rectF.left;
+                            mCurrentGraphBean.endX = rectF.right;
+                            mCurrentGraphBean.startPoint.x = rectF.left;
+                            mCurrentGraphBean.endPoint.x = rectF.right;
+                            mCurrentGraphBean.startY = (rectF.top + rectF.bottom) / 2;
+                            mCurrentGraphBean.endY = (rectF.top + rectF.bottom) / 2;
+                            mCurrentGraphBean.startPoint.y = (rectF.top + rectF.bottom) / 2;
+                            mCurrentGraphBean.endPoint.y = (rectF.top + rectF.bottom) / 2;
+                        }
+                    } else {
+                        mCurrentGraphBean.startX = rectF.left;
+                        mCurrentGraphBean.startY = rectF.top;
+                        mCurrentGraphBean.endX = rectF.right;
+                        mCurrentGraphBean.endY = rectF.bottom;
+                        mCurrentGraphBean.startPoint.x = rectF.left;
+                        mCurrentGraphBean.startPoint.y = rectF.top;
+                        mCurrentGraphBean.endPoint.x = rectF.right;
+                        mCurrentGraphBean.endPoint.y = rectF.bottom;
+                    }
+                }
+            }
+            size -= 1;
         }
         postInvalidate();
         return size;
+    }
+
+    /**
+     * 删除选中的某个图形
+     */
+    public void deleteCurrentGraph() {
+        if (mIsClickOnGraph && mCurrentGraphBean != null && mGraphPath.size() > 0) {
+            mGraphPath.remove(mCurrentGraphBean);
+            mCurrentGraphBean = null;
+            mIsClickOnGraph = false;
+            mGraphMode = MODE.NONE;
+        }
+        postInvalidate();
+    }
+
+    /**
+     * 清楚正在操作的图形的焦点
+     */
+    public void clearGraphFocus() {
+        mCurrentGraphBean = null;
+        mIsClickOnGraph = false;
+        mGraphMode = MODE.NONE;
+        postInvalidate();
+    }
+
+    /**
+     * 计算两点对应的角度
+     *
+     * @return float
+     */
+    public float getRotation(float startX, float startY, float endX, float endY) {
+        float deltaX = startX - endX;
+        float deltaY = startY - endY;
+        // 计算坐标点相对于圆点所对应的弧度
+        double radians = Math.atan2(deltaY, deltaX);
+        // 把弧度转换成角度
+        return (float) Math.toDegrees(radians);
     }
 
     /**
@@ -622,49 +853,33 @@ public class DoodleView extends ImageView implements LifecycleObserver {
     }
 
     /**
-     * 计算两点之间的距离
-     *
-     * @return float
-     */
-    public float distance(MotionEvent event) {
-        float dx = event.getX(1) - event.getX(0);
-        float dy = event.getY(1) - event.getY(0);
-        // a方+b方=c方
-        return (float) Math.sqrt(dx * dx + dy * dy);
-    }
-
-    /**
-     * 计算两点之间的中间点
-     *
-     * @return PointF
-     */
-    public PointF mid(MotionEvent event) {
-        float midX = (event.getX(1) + event.getX(0)) / 2;
-        float midY = (event.getY(1) + event.getY(0)) / 2;
-        return new PointF(midX, midY);
-    }
-
-    /**
-     * 计算手势对应的角度
-     *
-     * @return float
-     */
-    public float rotation(MotionEvent event) {
-        double deltaX = (event.getX(0) - event.getX(1));
-        double deltaY = (event.getY(0) - event.getY(1));
-        // 计算坐标点相对于圆点所对应的弧度
-        double radians = Math.atan2(deltaY, deltaX);
-        // 把弧度转换成角度
-        return (float) Math.toDegrees(radians);
-    }
-
-    /**
      * 设置所要画图形的种类
      *
      * @param graphType graphType
      */
     public void setGraphType(GRAPH_TYPE graphType) {
+        // 设置模式前，先把焦点给clear一下
+        clearGraphFocus();
         this.mCurrentGraphType = graphType;
+    }
+
+    /**
+     * 画笔直笔直的直线
+     */
+    private float[] getDirectLineEndPoint(float sx, float sy, float ex, float ey) {
+        float degrees = getRotation(sx, sy, ex, ey);
+        float[] point = new float[2];
+        // 根据角度画直线
+        if ((-45 <= degrees && degrees <= 45) || degrees >= 135 || degrees <= -135) {
+            // 往x轴的方向绘制，即y值不变
+            point[0] = ex;
+            point[1] = sy;
+        } else {
+            // 往y轴的方向绘制，即x值不变
+            point[0] = sx;
+            point[1] = ey;
+        }
+        return point;
     }
 
     /**
@@ -694,6 +909,12 @@ public class DoodleView extends ImageView implements LifecycleObserver {
         canvas.drawPath(triangle, paint);
     }
 
+    public void setMode(MODE mode) {
+        // 设置模式前，先把焦点给clear一下
+        clearGraphFocus();
+        this.mMode = mode;
+    }
+
     /**
      * 设置画笔的颜色
      *
@@ -704,19 +925,6 @@ public class DoodleView extends ImageView implements LifecycleObserver {
         if (mTempPaint != null) {
             mTempPaint.setColor(mPaintColor);
         }
-    }
-
-    /**
-     * 设置是否可编辑
-     *
-     * @param editable 能否编辑
-     */
-    public void setEditable(boolean editable) {
-        this.mIsEditable = editable;
-    }
-
-    public void setMode(MODE mode) {
-        this.mMode = mode;
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
@@ -730,6 +938,15 @@ public class DoodleView extends ImageView implements LifecycleObserver {
             mMoasicBitmap = null;
         }
         mCallBack = null;
+    }
+
+    /**
+     * 设置是否可编辑
+     *
+     * @param editable 能否编辑
+     */
+    public void setEditable(boolean editable) {
+        this.mIsEditable = editable;
     }
 
     private void autoBindLifecycle(Context context) {
@@ -753,18 +970,6 @@ public class DoodleView extends ImageView implements LifecycleObserver {
         NONE, GRAPH_MODE, DOODLE_MODE, MOSAIC_MODE, DRAG, ZOOM, DRAG_START, DRAG_END
     }
 
-    public enum GRAPH_TYPE {
-        RECT, CIRCLE, OVAL, ARROW
-    }
-
-    public interface DoodleCallback {
-        void onDrawStart();
-
-        void onDrawing();
-
-        void onDrawComplete();
-    }
-
     /**
      * 记录画笔和画图的路径，主要用来撤销画图的操作
      */
@@ -780,28 +985,47 @@ public class DoodleView extends ImageView implements LifecycleObserver {
         }
     }
 
+    public enum GRAPH_TYPE {
+        RECT, OVAL, ARROW, LINE, DIRECT_LINE
+    }
+
+    public interface DoodleCallback {
+        void onDrawStart();
+
+        void onDrawing();
+
+        void onDrawComplete();
+    }
+
+    /**
+     * 记录图形绘制的实例类
+     */
     class DrawGraphBean {
+        // 这四个点是实时变化的，用来绘制图形的四个点
         public float startX, startY, endX, endY;
         public GRAPH_TYPE type;
         public Paint paint;
         public PointF clickPoint = new PointF();
-        // 两个点的变量，用于平移缩放的操作
-        PointF starPoint = new PointF();
+        // 两个点的变量，用于平移缩放的操作，只有在UP后，才会同步四个点的值
+        PointF startPoint = new PointF();
         PointF endPoint = new PointF();
+        // 是否是符合要求的图形
         boolean isPass = false;
+        // 用于撤销移动缩放的操作
         List<RectF> rectFList = new ArrayList<>();
 
-        DrawGraphBean(float startX, float startY, float endX, float endY, GRAPH_TYPE type, Paint paint) {
+        DrawGraphBean(float startX, float startY, float endx, float endY, GRAPH_TYPE type, Paint paint) {
             this.startX = startX;
             this.startY = startY;
-            this.endX = endX;
+            this.endX = endx;
             this.endY = endY;
             this.type = type;
             this.paint = paint;
-            this.starPoint.x = startX;
-            this.starPoint.y = startY;
-            this.endPoint.x = endX;
+            this.startPoint.x = startX;
+            this.startPoint.y = startY;
+            this.endPoint.x = endx;
             this.endPoint.y = endY;
+            rectFList.add(new RectF(startX, startY, endx, endY));
         }
     }
 }

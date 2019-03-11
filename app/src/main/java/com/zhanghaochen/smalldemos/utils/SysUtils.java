@@ -1,6 +1,9 @@
 package com.zhanghaochen.smalldemos.utils;
 
 import android.content.Context;
+import android.support.annotation.ColorRes;
+import android.support.annotation.IdRes;
+import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 
@@ -209,6 +212,10 @@ public class SysUtils {
         } else {
             return false;
         }
+    }
+
+    public static int getColor(@ColorRes int resId) {
+        return ContextCompat.getColor(GlobalParams.mApplication, resId);
     }
 
 }

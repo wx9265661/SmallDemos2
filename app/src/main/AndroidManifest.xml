@@ -30,9 +30,14 @@
             android:label="ConstraintLayout" />
 
         <activity
-            android:name=".views.EditPictureActivity"
+            android:name=".demos.EditPictureActivity"
             android:exported="false"
             android:label="画图" />
+
+        <activity
+            android:name=".demos.CircleBoardActivity"
+            android:exported="false"
+            android:label="仪表盘" />
     </application>
 
 </manifest>

@@ -1,8 +1,7 @@
-package com.zhanghaochen.smalldemos.views;
+package com.zhanghaochen.smalldemos.demos;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
@@ -12,7 +11,7 @@ import android.widget.Toast;
 
 import com.zhanghaochen.smalldemos.R;
 import com.zhanghaochen.smalldemos.framework.BaseActivity;
-import com.zhanghaochen.smalldemos.widget.DoodleView;
+import com.zhanghaochen.smalldemos.customer.views.DoodleView;
 
 public class EditPictureActivity extends BaseActivity {
 
@@ -82,7 +81,7 @@ public class EditPictureActivity extends BaseActivity {
                 } else if (checkedId == R.id.graph02) {
                     setDoodleGraph(DoodleView.GRAPH_TYPE.OVAL);
                 } else if (checkedId == R.id.graph03) {
-                    setDoodleGraph(DoodleView.GRAPH_TYPE.CIRCLE);
+                    setDoodleGraph(DoodleView.GRAPH_TYPE.LINE);
                 } else if (checkedId == R.id.graph04) {
                     setDoodleGraph(DoodleView.GRAPH_TYPE.ARROW);
                 }

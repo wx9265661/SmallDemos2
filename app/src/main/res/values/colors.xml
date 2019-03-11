@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="black">#000000</color>
+
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
@@ -10,4 +12,14 @@
 
     <color name="edit_normal_color">#FFFFFF</color>
     <color name="edit_selected_color">#FF0000</color>
+
+    <color name="circle_board_dot_red">#F36262</color>
+    <color name="circle_board_default_radius">#fac9c9</color>
+    <color name="circle_board_bg">#FEF8F8</color>
+    <color name="circle_board_middle_line">#FF9696</color>
+    <color name="circle_board_dot_out">#FFFFFF</color>
+    <color name="circle_board_dot_shadow">#7fFF8989</color>
+    <color name="circle_start_color">#FFC0C0</color>
+    <color name="circle_end_color">#EC0808</color>
+    <color name="circle_text_color">#4CEC0000</color>
 </resources>

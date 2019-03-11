@@ -5,9 +5,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
+import com.zhanghaochen.smalldemos.customer.views.CircleBoardView;
+import com.zhanghaochen.smalldemos.demos.CircleBoardActivity;
 import com.zhanghaochen.smalldemos.demos.ConstraintLayoutDemoActivity;
 import com.zhanghaochen.smalldemos.demos.FxActivity;
-import com.zhanghaochen.smalldemos.views.EditPictureActivity;
+import com.zhanghaochen.smalldemos.demos.EditPictureActivity;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -24,6 +26,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.demo01).setOnClickListener(this);
         findViewById(R.id.demo02).setOnClickListener(this);
         findViewById(R.id.demo03).setOnClickListener(this);
+        findViewById(R.id.demo04).setOnClickListener(this);
     }
 
     @Override
@@ -37,6 +40,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.demo03:
                 startActivity(new Intent(MainActivity.this, EditPictureActivity.class));
+                break;
+            case R.id.demo04:
+                startActivity(new Intent(MainActivity.this, CircleBoardActivity.class));
                 break;
             default:
                 break;

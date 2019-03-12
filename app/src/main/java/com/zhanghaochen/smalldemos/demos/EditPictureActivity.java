@@ -3,6 +3,7 @@ package com.zhanghaochen.smalldemos.demos;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.view.View;
@@ -18,6 +19,11 @@ public class EditPictureActivity extends BaseActivity {
     private DoodleView mDoodleView;
 
     private RadioGroup mGraphGroup, mModeGroup;
+
+    @Override
+    protected void handleMessage(Message message) {
+
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

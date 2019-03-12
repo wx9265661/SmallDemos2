@@ -1,6 +1,7 @@
 package com.zhanghaochen.smalldemos.demos;
 
 import android.os.Bundle;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.view.View;
@@ -18,6 +19,11 @@ public class CircleBoardActivity extends BaseActivity {
         setContentView(R.layout.activity_circleboard);
 
         initViews();
+    }
+
+    @Override
+    protected void handleMessage(Message message) {
+
     }
 
     private void initViews() {

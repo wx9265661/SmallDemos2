@@ -65,7 +65,7 @@ public class DoodleView extends ImageView implements LifecycleObserver {
     /**
      * 画笔的颜色
      */
-    private int mPaintColor = Color.WHITE;
+    private int mPaintColor = Color.RED;
 
     private Paint mMosaicPaint;
     /**

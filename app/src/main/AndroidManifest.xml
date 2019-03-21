@@ -38,6 +38,12 @@
             android:name=".demos.CircleBoardActivity"
             android:exported="false"
             android:label="仪表盘" />
+
+        <activity
+            android:name=".demos.MyRecyclerViewActivity"
+            android:exported="false"
+            android:label="RecyclerView"
+            android:theme="@style/AppFullTheme" />
     </application>
 
 </manifest>

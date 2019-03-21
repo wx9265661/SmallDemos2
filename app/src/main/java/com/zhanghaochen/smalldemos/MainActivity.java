@@ -10,6 +10,7 @@ import com.zhanghaochen.smalldemos.demos.CircleBoardActivity;
 import com.zhanghaochen.smalldemos.demos.ConstraintLayoutDemoActivity;
 import com.zhanghaochen.smalldemos.demos.FxActivity;
 import com.zhanghaochen.smalldemos.demos.EditPictureActivity;
+import com.zhanghaochen.smalldemos.demos.MyRecyclerViewActivity;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.demo02).setOnClickListener(this);
         findViewById(R.id.demo03).setOnClickListener(this);
         findViewById(R.id.demo04).setOnClickListener(this);
+        findViewById(R.id.demo05).setOnClickListener(this);
     }
 
     @Override
@@ -43,6 +45,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.demo04:
                 startActivity(new Intent(MainActivity.this, CircleBoardActivity.class));
+                break;
+            case R.id.demo05:
+                startActivity(new Intent(MainActivity.this, MyRecyclerViewActivity.class));
                 break;
             default:
                 break;

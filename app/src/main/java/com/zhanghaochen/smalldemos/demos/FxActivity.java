@@ -10,7 +10,7 @@ import android.widget.Toast;
 
 import com.zhanghaochen.smalldemos.R;
 import com.zhanghaochen.smalldemos.utils.SysUtils;
-import com.zhanghaochen.smalldemos.widget.FxView;
+import com.zhanghaochen.smalldemos.customer.views.FxView;
 
 public class FxActivity extends AppCompatActivity implements View.OnClickListener {
     private EditText mFormula;

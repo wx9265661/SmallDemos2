@@ -1,4 +1,4 @@
-package com.zhanghaochen.smalldemos.widget;
+package com.zhanghaochen.smalldemos.customer.views;
 
 import android.content.Context;
 import android.graphics.Canvas;

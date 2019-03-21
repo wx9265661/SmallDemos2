@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="108dp"
+    android:background="#FFF">
+
+    <ImageView
+        android:id="@+id/chief_img"
+        android:layout_width="112dp"
+        android:layout_height="84dp"
+        android:layout_centerVertical="true"
+        android:scaleType="fitXY" />
+
+    <TextView
+        android:id="@+id/chief_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="12sp"
+        android:layout_marginTop="12dp"
+        android:layout_marginRight="14dp"
+        android:layout_toRightOf="@id/chief_img"
+        android:ellipsize="end"
+        android:lineSpacingMultiplier="1.2"
+        android:maxLines="2"
+        android:textColor="#333333"
+        android:textSize="15sp"
+        tools:text="金融工程：两个择时模型-量价则时与风险收益" />
+
+    <TextView
+        android:id="@+id/chief_click_num"
+        android:layout_width="42dp"
+        android:layout_height="17dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="28dp"
+        android:layout_marginBottom="12dp"
+        android:gravity="center_vertical|end"
+        android:maxLines="1"
+        android:textColor="#bf666666"
+        android:textSize="12dp"
+        app:autoSizeMaxTextSize="12dp"
+        app:autoSizeMinTextSize="8dp"
+        app:autoSizeStepGranularity="1dp"
+        app:autoSizeTextType="uniform"
+        tools:text="1231次" />
+
+    <TextView
+        android:id="@+id/chief_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="12sp"
+        android:layout_marginBottom="12sp"
+        android:layout_toLeftOf="@id/chief_click_num"
+        android:layout_toRightOf="@id/chief_img"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="#bf666666"
+        android:textSize="12sp"
+        tools:text="宏观研究员 刘志" />
+</RelativeLayout>

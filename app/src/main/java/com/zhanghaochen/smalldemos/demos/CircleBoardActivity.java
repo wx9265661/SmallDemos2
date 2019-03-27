@@ -10,9 +10,15 @@ import android.widget.EditText;
 
 import com.zhanghaochen.smalldemos.R;
 import com.zhanghaochen.smalldemos.customer.views.CircleBoardView;
+import com.zhanghaochen.smalldemos.customer.views.CountDownTextView;
 import com.zhanghaochen.smalldemos.framework.BaseActivity;
+import com.zhanghaochen.smalldemos.utils.CustomerViewUtils;
+import com.zhanghaochen.smalldemos.utils.SysUtils;
 
 public class CircleBoardActivity extends BaseActivity {
+    private EditText mCountDownEt;
+    private CountDownTextView mCountDownTextView;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,6 +37,7 @@ public class CircleBoardActivity extends BaseActivity {
         final EditText et2 = findViewById(R.id.cur_value);
 
         final CircleBoardView circleBoardView = findViewById(R.id.circle_view);
+        mCountDownEt = findViewById(R.id.countdown_ms);
         Button button = findViewById(R.id.circle_go);
 
         // 设置监听
@@ -47,5 +54,34 @@ public class CircleBoardActivity extends BaseActivity {
                 }
             }
         });
+        findViewById(R.id.countdown_go).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                long countDowmNumber = SysUtils.parseLong(SysUtils.getSafeString(mCountDownEt.getText().toString()));
+                if (countDowmNumber > 0) {
+                    mCountDownTextView.startCountDown(countDowmNumber);
+                }
+            }
+        });
+
+        mCountDownTextView = findViewById(R.id.countdown_tv);
+        final String label = "还剩下 ";
+        mCountDownTextView.setNormalText("倒计时控件").setCountDownText(label, "后开始")
+                .setBeforeIndex(label.length())
+                .setCountDownClickable(false)
+                .setIsShowComplete(true)
+                .setShowFormatTime(true)
+                .setOnCountDownTickListener(new CountDownTextView.OnCountDownTickListener() {
+                    @Override
+                    public void onTick(long untilFinished, String showTime, CountDownTextView tv) {
+                        tv.setText(CustomerViewUtils.getMixedText(label + showTime, tv.getTimeIndexes(), true));
+                    }
+                })
+                .setOnCountDownFinishListener(new CountDownTextView.OnCountDownFinishListener() {
+                    @Override
+                    public void onFinish() {
+                        mCountDownTextView.setText("倒计时结束");
+                    }
+                });
     }
 }

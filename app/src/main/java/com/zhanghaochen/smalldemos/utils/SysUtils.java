@@ -218,4 +218,50 @@ public class SysUtils {
         return ContextCompat.getColor(GlobalParams.mApplication, resId);
     }
 
+    /**
+     * 获取不为空的字符串
+     *
+     * @param string
+     * @return string
+     */
+    public static String getSafeString(String string) {
+        if (!isEmpty(string)) {
+            return string;
+        } else {
+            return "";
+        }
+    }
+
+    /**
+     * 判断String是不是为纯字母数字
+     */
+    public static boolean IsNumLetter(String letter) {
+        if (letter == null || letter.length() <= 0) {
+            return false;
+        }
+        for (int i = 0; i < letter.length(); i++) {
+            char c = letter.charAt(i);
+            if (!(c >= 'a' && c <= 'z') && !(c >= 'A' && c <= 'Z') && !(c >= '0' && c <= '9')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 判断String是不是为纯数字
+     */
+    public static boolean IsNumber(String nNum) {
+        if (nNum == null || nNum.length() <= 0) {
+            return false;
+        }
+        for (int i = 0; i < nNum.length(); i++) {
+            char c = nNum.charAt(i);
+            if (!(c >= '0' && c <= '9')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

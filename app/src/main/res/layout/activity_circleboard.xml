@@ -72,4 +72,33 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <EditText
+        android:id="@+id/countdown_ms"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:hint="请设置倒计时的时间（s）"
+        android:inputType="number"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/circle_view" />
+
+    <Button
+        android:id="@+id/countdown_go"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:text="开始倒计时"
+        app:layout_constraintStart_toEndOf="@id/countdown_ms"
+        app:layout_constraintTop_toBottomOf="@id/circle_view" />
+
+    <com.zhanghaochen.smalldemos.customer.views.CountDownTextView
+        android:id="@+id/countdown_tv"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:gravity="center_horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/countdown_ms" />
+
 </android.support.constraint.ConstraintLayout>

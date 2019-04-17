@@ -66,7 +66,7 @@ public class CircleBoardActivity extends BaseActivity {
 
         mCountDownTextView = findViewById(R.id.countdown_tv);
         final String label = "还剩下 ";
-        mCountDownTextView.setNormalText("倒计时控件").setCountDownText(label, "后开始")
+        mCountDownTextView.setNormalText("倒计时控件")
                 .setBeforeIndex(label.length())
                 .setCountDownClickable(false)
                 .setIsShowComplete(true)

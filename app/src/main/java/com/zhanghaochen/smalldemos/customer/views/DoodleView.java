@@ -788,6 +788,10 @@ public class DoodleView extends ImageView implements LifecycleObserver {
                         mCurrentGraphBean.endPoint.y = rectF.bottom;
                     }
                 }
+            } else {
+                // 没有路径可以撤销了，直接删除
+                mGraphPath.remove(mCurrentGraphBean);
+                setMode(MODE.GRAPH_MODE);
             }
             size -= 1;
         }

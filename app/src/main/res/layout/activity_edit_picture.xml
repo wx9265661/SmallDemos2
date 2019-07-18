@@ -81,7 +81,7 @@
             android:button="@null"
             android:checked="true"
             android:gravity="center"
-            android:text="矩形"
+            android:text="直线"
             android:textColor="@drawable/edit_radio_tv_color" />
 
         <RadioButton
@@ -103,7 +103,7 @@
             android:background="@null"
             android:button="@null"
             android:gravity="center"
-            android:text="圆形"
+            android:text="矩形"
             android:textColor="@drawable/edit_radio_tv_color" />
 
         <RadioButton
@@ -115,6 +115,17 @@
             android:button="@null"
             android:gravity="center"
             android:text="箭头"
+            android:textColor="@drawable/edit_radio_tv_color" />
+
+        <RadioButton
+            android:id="@+id/graph05"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@null"
+            android:button="@null"
+            android:gravity="center"
+            android:text="垂线"
             android:textColor="@drawable/edit_radio_tv_color" />
     </RadioGroup>
 

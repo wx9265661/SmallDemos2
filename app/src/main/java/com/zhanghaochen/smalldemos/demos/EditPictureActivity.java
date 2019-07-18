@@ -7,6 +7,7 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.view.View;
+import android.widget.Button;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
@@ -19,6 +20,8 @@ public class EditPictureActivity extends BaseActivity {
     private DoodleView mDoodleView;
 
     private RadioGroup mGraphGroup, mModeGroup;
+
+    private Button mRevertBtn;
 
     @Override
     protected void handleMessage(Message message) {
@@ -45,13 +48,14 @@ public class EditPictureActivity extends BaseActivity {
             mDoodleView.setOriginBitmap(originBitmap);
         }
 
-        findViewById(R.id.edit_revert).setOnClickListener(new View.OnClickListener() {
+        mRevertBtn = findViewById(R.id.edit_revert);
+        mRevertBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int result = mDoodleView.revertPath();
-                if (result <= 0) {
-                    Toast.makeText(EditPictureActivity.this, "不能再删除了", Toast.LENGTH_SHORT).show();
-                }
+//                if (result <= 0) {
+//                    Toast.makeText(EditPictureActivity.this, "不能再删除了", Toast.LENGTH_SHORT).show();
+//                }
             }
         });
 
@@ -83,13 +87,15 @@ public class EditPictureActivity extends BaseActivity {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if (checkedId == R.id.graph01) {
-                    setDoodleGraph(DoodleView.GRAPH_TYPE.RECT);
+                    setDoodleGraph(DoodleView.GRAPH_TYPE.LINE);
                 } else if (checkedId == R.id.graph02) {
                     setDoodleGraph(DoodleView.GRAPH_TYPE.OVAL);
                 } else if (checkedId == R.id.graph03) {
-                    setDoodleGraph(DoodleView.GRAPH_TYPE.LINE);
+                    setDoodleGraph(DoodleView.GRAPH_TYPE.RECT);
                 } else if (checkedId == R.id.graph04) {
                     setDoodleGraph(DoodleView.GRAPH_TYPE.ARROW);
+                } else if (checkedId == R.id.graph05) {
+                    setDoodleGraph(DoodleView.GRAPH_TYPE.DIRECT_LINE);
                 }
             }
         });
@@ -109,6 +115,13 @@ public class EditPictureActivity extends BaseActivity {
             public void onDrawComplete() {
                 if (mModeGroup.getCheckedRadioButtonId() == R.id.edit_func1) {
                     mGraphGroup.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onRevertStateChanged(boolean canRevert) {
+                if (mRevertBtn != null) {
+                    mRevertBtn.setEnabled(canRevert);
                 }
             }
         });

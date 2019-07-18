@@ -22,4 +22,11 @@
     <color name="circle_start_color">#FFC0C0</color>
     <color name="circle_end_color">#EC0808</color>
     <color name="circle_text_color">#4CEC0000</color>
+
+    <!-- 编辑图片 -->
+    <color name="image_color_orange">#FF9500</color>
+    <color name="image_color_red">#F43229</color>
+    <color name="image_color_green">#63DB37</color>
+    <color name="image_color_blue">#007AFF</color>
+    <color name="image_color_white">#FFFFFF</color>
 </resources>

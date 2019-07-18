@@ -9,6 +9,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
@@ -17,12 +18,14 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.ImageView;
 
+import com.zhanghaochen.smalldemos.R;
 import com.zhanghaochen.smalldemos.utils.CustomerViewUtils;
 import com.zhanghaochen.smalldemos.utils.SysUtils;
 
@@ -36,15 +39,36 @@ import java.util.List;
 public class DoodleView extends ImageView implements LifecycleObserver {
     private static final String TAG = "DoodleView";
 
-    private float mValidRadius = SysUtils.convertDpToPixel(2);
+    public interface DoodleCallback {
+        void onDrawStart();
+
+        void onDrawing();
+
+        void onDrawComplete();
+
+        void onRevertStateChanged(boolean canRevert);
+    }
 
     private DoodleCallback mCallBack;
 
     private int mViewWidth, mViewHeight;
+
+    private float mValidRadius = SysUtils.convertDpToPixel(2);
+
+    /**
+     * 判断手指移动距离，是否画了有效图形的区域
+     */
+    private float mGraphValidRange = SysUtils.convertDpToPixel(6);
+
+    /**
+     * 点击选择图形，扩大的相应的有效范围
+     */
+    private float mGraphValidClickRange = SysUtils.convertDpToPixel(8);
     /**
      * 可拖动的点的半径
      */
     private float mDotRadius = SysUtils.convertDpToPixel(8);
+
     /**
      * 暂时的涂鸦画笔
      */
@@ -53,31 +77,33 @@ public class DoodleView extends ImageView implements LifecycleObserver {
      * 暂时的涂鸦路径
      */
     private Path mTempPath;
+
     /**
      * 暂时的马赛克路径
      */
     private Path mTempMosaicPath;
+
     private Paint mTempMosaicPaint;
+
     /**
      * 暂时的图形实例，用来move时实时画路径
      */
     private DrawGraphBean mTempGraphBean;
+
+    private Paint mMosaicPaint;
     /**
      * 画笔的颜色
      */
     private int mPaintColor = Color.RED;
-
-    private Paint mMosaicPaint;
     /**
      * 画笔的粗细
      */
     private int mPaintWidth = SysUtils.convertDpToPixel(3);
-    /**
-     * 图形的当前操作模式
-     */
-    private MODE mGraphMode = MODE.NONE;
 
     private Paint mBitmapPaint;
+    /**
+     * 框住图形的path的画笔
+     */
     private Paint mGraphRectPaint;
     private Paint mDotPaint;
 
@@ -86,7 +112,7 @@ public class DoodleView extends ImageView implements LifecycleObserver {
 
     private MODE mMode = MODE.NONE;
 
-    private GRAPH_TYPE mCurrentGraphType = GRAPH_TYPE.RECT;
+    private GRAPH_TYPE mCurrentGraphType = GRAPH_TYPE.LINE;
     private ArrayList<DrawGraphBean> mGraphPath = new ArrayList<>();
 
     /**
@@ -103,6 +129,10 @@ public class DoodleView extends ImageView implements LifecycleObserver {
      */
     private ArrayList<DrawPathBean> mMosaicPath = new ArrayList<>();
     /**
+     * 图形的当前操作模式
+     */
+    private MODE mGraphMode = MODE.NONE;
+    /**
      * 当前选中的图形
      */
     private DrawGraphBean mCurrentGraphBean;
@@ -110,18 +140,14 @@ public class DoodleView extends ImageView implements LifecycleObserver {
      * 是否点击到图形了
      */
     private boolean mIsClickOnGraph = false;
-    /**
-     * 区分点击和滑动
-     */
-    private float mDelaX, mDelaY;
 
     private float mStartX, mStartY;
     private float mMoveX, mMoveY;
 
-    public DoodleView setCallBack(DoodleCallback callBack) {
-        this.mCallBack = callBack;
-        return this;
-    }
+    /**
+     * 区分点击和滑动
+     */
+    private float mDelaX, mDelaY;
 
     public DoodleView(Context context) {
         super(context);
@@ -133,6 +159,11 @@ public class DoodleView extends ImageView implements LifecycleObserver {
         super(context, attrs);
         init();
         autoBindLifecycle(context);
+    }
+
+    public DoodleView setCallBack(DoodleCallback callBack) {
+        this.mCallBack = callBack;
+        return this;
     }
 
     @Override
@@ -255,34 +286,6 @@ public class DoodleView extends ImageView implements LifecycleObserver {
         }
     }
 
-    private void setModePaint(MODE mode) {
-        if (mode == MODE.DOODLE_MODE) {
-            mTempPaint = new Paint();
-            mTempPaint.setAntiAlias(true);
-            mTempPaint.setColor(mPaintColor);
-            mTempPaint.setStyle(Paint.Style.STROKE);
-            mTempPaint.setStrokeWidth(mPaintWidth);
-            mTempPaint.setStrokeCap(Paint.Cap.ROUND);
-            mTempPaint.setStrokeJoin(Paint.Join.ROUND);
-        } else if (mode == MODE.MOSAIC_MODE) {
-            mTempMosaicPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mTempMosaicPaint.setAntiAlias(true);
-            mTempMosaicPaint.setDither(true);
-            mTempMosaicPaint.setStyle(Paint.Style.STROKE);
-            mTempMosaicPaint.setTextAlign(Paint.Align.CENTER);
-            mTempMosaicPaint.setStrokeCap(Paint.Cap.ROUND);
-            mTempMosaicPaint.setStrokeJoin(Paint.Join.ROUND);
-            mTempMosaicPaint.setStrokeWidth(mPaintWidth * 2);
-        } else if (mode == MODE.GRAPH_MODE) {
-            mTempPaint = new Paint();
-            mTempPaint.setAntiAlias(true);
-            mTempPaint.setColor(mPaintColor);
-            mTempPaint.setStrokeWidth(mPaintWidth);
-            mTempPaint.setStrokeCap(Paint.Cap.ROUND);
-            mTempPaint.setStrokeJoin(Paint.Join.ROUND);
-        }
-    }
-
     /**
      * 设置原始的截图
      *
@@ -327,6 +330,8 @@ public class DoodleView extends ImageView implements LifecycleObserver {
             mGraphRectPaint.setStrokeWidth(1);
             mGraphRectPaint.setStrokeCap(Paint.Cap.ROUND);
             mGraphRectPaint.setStrokeJoin(Paint.Join.ROUND);
+            // 3.5实线，2.5空白
+            mGraphRectPaint.setPathEffect(new DashPathEffect(new float[]{SysUtils.convertDpToPixel(3.5f), SysUtils.convertDpToPixel(2.5f)}, 0));
 
             mDotPaint = new Paint();
             mDotPaint.setAntiAlias(true);
@@ -336,6 +341,35 @@ public class DoodleView extends ImageView implements LifecycleObserver {
             mDotPaint.setStrokeJoin(Paint.Join.ROUND);
 
             postInvalidate();
+        }
+    }
+
+    private void setModePaint(MODE mode) {
+        if (mode == MODE.DOODLE_MODE) {
+            mTempPaint = new Paint();
+            mTempPaint.setAntiAlias(true);
+            mTempPaint.setColor(mPaintColor);
+            mTempPaint.setStyle(Paint.Style.STROKE);
+            mTempPaint.setStrokeWidth(mPaintWidth);
+            mTempPaint.setStrokeCap(Paint.Cap.ROUND);
+            mTempPaint.setStrokeJoin(Paint.Join.ROUND);
+        } else if (mode == MODE.MOSAIC_MODE) {
+            mTempMosaicPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mTempMosaicPaint.setAntiAlias(true);
+            mTempMosaicPaint.setDither(true);
+            mTempMosaicPaint.setStyle(Paint.Style.STROKE);
+            mTempMosaicPaint.setTextAlign(Paint.Align.CENTER);
+            mTempMosaicPaint.setStrokeCap(Paint.Cap.ROUND);
+            mTempMosaicPaint.setStrokeJoin(Paint.Join.ROUND);
+            mTempMosaicPaint.setStrokeWidth(mPaintWidth * 2);
+        } else if (mode == MODE.GRAPH_MODE) {
+            mTempPaint = new Paint();
+            mTempPaint.setAntiAlias(true);
+            // 绘画图形时，总是红色画笔
+            mTempPaint.setColor(ContextCompat.getColor(getContext(), R.color.image_color_red));
+            mTempPaint.setStrokeWidth(mPaintWidth);
+            mTempPaint.setStrokeCap(Paint.Cap.ROUND);
+            mTempPaint.setStrokeJoin(Paint.Join.ROUND);
         }
     }
 
@@ -389,6 +423,7 @@ public class DoodleView extends ImageView implements LifecycleObserver {
                     postInvalidate();
                     if (mCallBack != null) {
                         mCallBack.onDrawComplete();
+                        mCallBack.onRevertStateChanged(getCurrentPathSize(mMode));
                     }
                     return false;
                 }
@@ -403,7 +438,13 @@ public class DoodleView extends ImageView implements LifecycleObserver {
                         DrawPathBean pathBean = new DrawPathBean(mTempMosaicPath, mTempMosaicPaint, MODE.MOSAIC_MODE);
                         mMosaicPath.add(pathBean);
                     } else if (mMode == MODE.GRAPH_MODE) {
+                        // 如果是图形，画完之后，可以立即编辑当前图形
                         mGraphPath.add(mTempGraphBean);
+                        if (mGraphPath.size() > 0) {
+                            mCurrentGraphBean = mGraphPath.get(mGraphPath.size() - 1);
+                            mIsClickOnGraph = true;
+                            mGraphMode = MODE.DRAG;
+                        }
                     }
                     mTempPath = null;
                     mTempPaint = null;
@@ -425,6 +466,7 @@ public class DoodleView extends ImageView implements LifecycleObserver {
 
                 if (mCallBack != null) {
                     mCallBack.onDrawComplete();
+                    mCallBack.onRevertStateChanged(getCurrentPathSize(mMode));
                 }
                 postInvalidate();
                 return true;
@@ -490,7 +532,7 @@ public class DoodleView extends ImageView implements LifecycleObserver {
             // 只操作暂时的图形对象
             if (mTempGraphBean != null) {
                 // 只有移动了足够距离，才算合格的图形
-                if (mDelaX > mValidRadius || mDelaY > mValidRadius) {
+                if (mDelaX > mGraphValidRange || mDelaY > mGraphValidRange) {
                     mTempGraphBean.isPass = true;
                     if (mTempGraphBean.type == GRAPH_TYPE.DIRECT_LINE) {
                         // 由于笔直的线的特殊性，需要特殊处理
@@ -648,23 +690,23 @@ public class DoodleView extends ImageView implements LifecycleObserver {
                     // 笔直的线的x或者y会有之一相等
                     if (graphBean.rectFList.size() > 0) {
                         RectF lastedRect = graphBean.rectFList.get(graphBean.rectFList.size() - 1);
-                        rectF = new RectF(Math.min(lastedRect.left, lastedRect.right),
-                                Math.min(lastedRect.top, lastedRect.bottom),
-                                Math.max(lastedRect.left, lastedRect.right),
-                                Math.max(lastedRect.top, lastedRect.bottom));
+                        rectF = new RectF(Math.min(lastedRect.left, lastedRect.right) - mGraphValidClickRange,
+                                Math.min(lastedRect.top, lastedRect.bottom - mGraphValidClickRange),
+                                Math.max(lastedRect.left, lastedRect.right + mGraphValidClickRange),
+                                Math.max(lastedRect.top, lastedRect.bottom + mGraphValidClickRange));
                     }
                 } else {
-                    rectF = new RectF(Math.min(graphBean.startX, graphBean.endX),
-                            Math.min(graphBean.startY, graphBean.endY),
-                            Math.max(graphBean.startX, graphBean.endX),
-                            Math.max(graphBean.startY, graphBean.endY));
+                    rectF = new RectF(Math.min(graphBean.startX, graphBean.endX) - mGraphValidClickRange,
+                            Math.min(graphBean.startY, graphBean.endY) - mGraphValidClickRange,
+                            Math.max(graphBean.startX, graphBean.endX) + mGraphValidClickRange,
+                            Math.max(graphBean.startY, graphBean.endY) + mGraphValidClickRange);
                 }
                 // 通过rect来判断
                 // 看看点击的点是否在这个框框里(这个框框的判定很奇怪，需要坐标从小到大）
                 if (rectF != null && rectF.contains(mMoveX, mMoveY)) {
-                    // 点击到文字了，说明接下来会进行图形操作，给mCurrentGraphBean赋新值
+                    // 点击到图形了，说明接下来会进行图形操作，给mCurrentGraphBean赋新值
                     mCurrentGraphBean = graphBean;
-                    Log.d(TAG, "点击到文字啦！" + rectF);
+                    Log.d(TAG, "点击到图形啦！" + rectF);
                     mIsClickOnGraph = true;
                     mGraphMode = MODE.DRAG;
                     clickIndex = i;
@@ -740,14 +782,21 @@ public class DoodleView extends ImageView implements LifecycleObserver {
             if (size > 0) {
                 mDoodlePath.remove(size - 1);
             }
+            if (mCallBack != null) {
+                mCallBack.onRevertStateChanged(mDoodlePath.size() > 0);
+            }
         } else if (!mIsClickOnGraph && mMode == MODE.MOSAIC_MODE) {
             size = mMosaicPath.size();
             if (size > 0) {
                 mMosaicPath.remove(size - 1);
             }
+            if (mCallBack != null) {
+                mCallBack.onRevertStateChanged(mMosaicPath.size() > 0);
+            }
         } else if (mIsClickOnGraph && mCurrentGraphBean != null) {
             // 如果当前选中了某个图形,但是此处的rectList不能删光，需要保留一条最初的数据
             size = mCurrentGraphBean.rectFList.size();
+            // 图行相关需要特殊处理，当撤销到最初始状态时，再按撤销，直接删除该图形！
             if (size > 1) {
                 mCurrentGraphBean.rectFList.remove(size - 1);
                 int currentSize = size - 1;
@@ -789,14 +838,43 @@ public class DoodleView extends ImageView implements LifecycleObserver {
                     }
                 }
             } else {
-                // 没有路径可以撤销了，直接删除
-                mGraphPath.remove(mCurrentGraphBean);
-                setMode(MODE.GRAPH_MODE);
+                deleteCurrentGraph();
+            }
+            if (mCallBack != null) {
+                // 只有删除了图形，这个选中图形才真正撤销完成，所以失去焦点，就撤销完了
+                if (!mIsClickOnGraph) {
+                    // 还有一点需要注意的是，可能是在其他涂鸦或者马赛克模式下操作的图形
+                    mCallBack.onRevertStateChanged(getCurrentPathSize(mMode));
+                } else {
+                    mCallBack.onRevertStateChanged(mIsClickOnGraph);
+                }
             }
             size -= 1;
         }
         postInvalidate();
         return size;
+    }
+
+    /**
+     * 获取指定模式下，是否可撤销
+     *
+     * @param mode mode
+     * @return boolean
+     */
+    public boolean getCurrentPathSize(MODE mode) {
+        boolean result = false;
+        if (!mIsClickOnGraph && mode == MODE.DOODLE_MODE) {
+            if (mDoodlePath.size() > 0) {
+                result = true;
+            }
+        } else if (!mIsClickOnGraph && mode == MODE.MOSAIC_MODE) {
+            if (mMosaicPath.size() > 0) {
+                result = true;
+            }
+        } else if (mIsClickOnGraph && mCurrentGraphBean != null) {
+            result = true;
+        }
+        return result;
     }
 
     /**
@@ -823,20 +901,6 @@ public class DoodleView extends ImageView implements LifecycleObserver {
     }
 
     /**
-     * 计算两点对应的角度
-     *
-     * @return float
-     */
-    public float getRotation(float startX, float startY, float endX, float endY) {
-        float deltaX = startX - endX;
-        float deltaY = startY - endY;
-        // 计算坐标点相对于圆点所对应的弧度
-        double radians = Math.atan2(deltaY, deltaX);
-        // 把弧度转换成角度
-        return (float) Math.toDegrees(radians);
-    }
-
-    /**
      * 获取马赛克的bitmap
      */
     private Bitmap makeMosaicBitmap() {
@@ -857,6 +921,20 @@ public class DoodleView extends ImageView implements LifecycleObserver {
     }
 
     /**
+     * 计算两点对应的角度
+     *
+     * @return float
+     */
+    public float getRotation(float startX, float startY, float endX, float endY) {
+        float deltaX = startX - endX;
+        float deltaY = startY - endY;
+        // 计算坐标点相对于圆点所对应的弧度
+        double radians = Math.atan2(deltaY, deltaX);
+        // 把弧度转换成角度
+        return (float) Math.toDegrees(radians);
+    }
+
+    /**
      * 设置所要画图形的种类
      *
      * @param graphType graphType
@@ -865,25 +943,9 @@ public class DoodleView extends ImageView implements LifecycleObserver {
         // 设置模式前，先把焦点给clear一下
         clearGraphFocus();
         this.mCurrentGraphType = graphType;
-    }
-
-    /**
-     * 画笔直笔直的直线
-     */
-    private float[] getDirectLineEndPoint(float sx, float sy, float ex, float ey) {
-        float degrees = getRotation(sx, sy, ex, ey);
-        float[] point = new float[2];
-        // 根据角度画直线
-        if ((-45 <= degrees && degrees <= 45) || degrees >= 135 || degrees <= -135) {
-            // 往x轴的方向绘制，即y值不变
-            point[0] = ex;
-            point[1] = sy;
-        } else {
-            // 往y轴的方向绘制，即x值不变
-            point[0] = sx;
-            point[1] = ey;
+        if (mCallBack != null) {
+            mCallBack.onRevertStateChanged(getCurrentPathSize(mMode));
         }
-        return point;
     }
 
     /**
@@ -913,10 +975,23 @@ public class DoodleView extends ImageView implements LifecycleObserver {
         canvas.drawPath(triangle, paint);
     }
 
-    public void setMode(MODE mode) {
-        // 设置模式前，先把焦点给clear一下
-        clearGraphFocus();
-        this.mMode = mode;
+    /**
+     * 画笔直笔直的直线
+     */
+    private float[] getDirectLineEndPoint(float sx, float sy, float ex, float ey) {
+        float degrees = getRotation(sx, sy, ex, ey);
+        float[] point = new float[2];
+        // 根据角度画直线
+        if ((-45 <= degrees && degrees <= 45) || degrees >= 135 || degrees <= -135) {
+            // 往x轴的方向绘制，即y值不变
+            point[0] = ex;
+            point[1] = sy;
+        } else {
+            // 往y轴的方向绘制，即x值不变
+            point[0] = sx;
+            point[1] = ey;
+        }
+        return point;
     }
 
     /**
@@ -931,17 +1006,8 @@ public class DoodleView extends ImageView implements LifecycleObserver {
         }
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    private void clear() {
-        if (mOriginBitmap != null && !mOriginBitmap.isRecycled()) {
-            mOriginBitmap.recycle();
-            mOriginBitmap = null;
-        }
-        if (mMoasicBitmap != null && !mMoasicBitmap.isRecycled()) {
-            mMoasicBitmap.recycle();
-            mMoasicBitmap = null;
-        }
-        mCallBack = null;
+    public enum MODE {
+        NONE, GRAPH_MODE, DOODLE_MODE, MOSAIC_MODE, DRAG, ZOOM, DRAG_START, DRAG_END
     }
 
     /**
@@ -953,25 +1019,17 @@ public class DoodleView extends ImageView implements LifecycleObserver {
         this.mIsEditable = editable;
     }
 
-    private void autoBindLifecycle(Context context) {
-        if (context == null) {
-            return;
-        }
-        if (context instanceof AppCompatActivity) {
-            // 宿主是activity
-            AppCompatActivity activity = (AppCompatActivity) context;
-            ((AppCompatActivity) activity).getLifecycle().addObserver(this);
-            return;
-        }
-        // 宿主是fragment
-        if (context instanceof LifecycleOwner) {
-            ((LifecycleOwner) context).getLifecycle().addObserver(this);
-            return;
+    public void setMode(MODE mode) {
+        // 设置模式前，先把焦点给clear一下
+        clearGraphFocus();
+        this.mMode = mode;
+        if (mCallBack != null) {
+            mCallBack.onRevertStateChanged(getCurrentPathSize(mMode));
         }
     }
 
-    public enum MODE {
-        NONE, GRAPH_MODE, DOODLE_MODE, MOSAIC_MODE, DRAG, ZOOM, DRAG_START, DRAG_END
+    public enum GRAPH_TYPE {
+        RECT, OVAL, ARROW, LINE, DIRECT_LINE
     }
 
     /**
@@ -987,18 +1045,6 @@ public class DoodleView extends ImageView implements LifecycleObserver {
             this.path = path;
             this.mode = mode;
         }
-    }
-
-    public enum GRAPH_TYPE {
-        RECT, OVAL, ARROW, LINE, DIRECT_LINE
-    }
-
-    public interface DoodleCallback {
-        void onDrawStart();
-
-        void onDrawing();
-
-        void onDrawComplete();
     }
 
     /**
@@ -1030,6 +1076,36 @@ public class DoodleView extends ImageView implements LifecycleObserver {
             this.endPoint.x = endx;
             this.endPoint.y = endY;
             rectFList.add(new RectF(startX, startY, endx, endY));
+        }
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    private void clear() {
+        if (mOriginBitmap != null && !mOriginBitmap.isRecycled()) {
+            mOriginBitmap.recycle();
+            mOriginBitmap = null;
+        }
+        if (mMoasicBitmap != null && !mMoasicBitmap.isRecycled()) {
+            mMoasicBitmap.recycle();
+            mMoasicBitmap = null;
+        }
+        mCallBack = null;
+    }
+
+    private void autoBindLifecycle(Context context) {
+        if (context == null) {
+            return;
+        }
+        if (context instanceof AppCompatActivity) {
+            // 宿主是activity
+            AppCompatActivity activity = (AppCompatActivity) context;
+            ((AppCompatActivity) activity).getLifecycle().addObserver(this);
+            return;
+        }
+        // 宿主是fragment
+        if (context instanceof LifecycleOwner) {
+            ((LifecycleOwner) context).getLifecycle().addObserver(this);
+            return;
         }
     }
 }

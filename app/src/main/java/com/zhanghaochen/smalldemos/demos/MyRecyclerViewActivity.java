@@ -11,9 +11,9 @@ import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
 
 import com.zhanghaochen.smalldemos.R;
-import com.zhanghaochen.smalldemos.customer.recyclerviews.LinearItemDecoration;
+import com.zhanghaochen.smalldemos.customer.recyclerviews.itemdecoration.Divider;
+import com.zhanghaochen.smalldemos.customer.recyclerviews.itemdecoration.LinearItemDecoration;
 import com.zhanghaochen.smalldemos.framework.BaseActivity;
-import com.zhanghaochen.smalldemos.customer.recyclerviews.Divider;
 import com.zhanghaochen.smalldemos.views.MyDemoHolder01;
 
 import java.util.ArrayList;

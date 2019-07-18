@@ -5,7 +5,7 @@
  * @CreateDate: 2019/4/17 下午5:42
  * @Version: 1.0
  */
-package com.zhanghaochen.smalldemos.customer.views;
+package com.zhanghaochen.smalldemos.framework.widgets.chartview;
 
 /**
  * @author created by zhanghaochen

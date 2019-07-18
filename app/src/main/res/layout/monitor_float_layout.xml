@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="100dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/show_hide"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#7f000000"
+            android:ems="2"
+            android:gravity="center"
+            android:paddingLeft="5dp"
+            android:paddingTop="10dp"
+            android:paddingRight="5dp"
+            android:paddingBottom="10dp"
+            android:text="展开"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/m_remove"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:background="#2f000000"
+            android:ems="2"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="移除"
+            android:textColor="@color/white" />
+    </LinearLayout>
+
+    <com.zhanghaochen.smalldemos.customer.recyclerviews.MaxHeightRecyclerView
+        android:id="@+id/monitor_recycler"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#7f000000"
+        android:overScrollMode="never"
+        android:visibility="gone" />
+</LinearLayout>

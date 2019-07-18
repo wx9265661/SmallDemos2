@@ -10,6 +10,7 @@ public class FloatViewUtil {
 
     public static MonitorFloatView getTestFloatIns() {
         if (mMonitorFloatView == null) {
+            MonitorFloatView.IMonitorFloat.sBinding = new MonitorFloatImpl();
             mMonitorFloatView = new MonitorFloatView(new MonitorFloatView.OnRemoveFromWindow() {
                 @Override
                 public void onRemove() {

@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.zhanghaochen.smalldemos.customer.views.FxView
+    <com.zhanghaochen.smalldemos.widget.FxView
         android:id="@+id/fx_view"
         android:layout_width="match_parent"
         android:layout_height="200dp"

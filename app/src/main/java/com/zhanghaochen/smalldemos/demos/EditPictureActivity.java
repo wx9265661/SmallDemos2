@@ -9,11 +9,10 @@ import android.support.constraint.ConstraintLayout;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RadioGroup;
-import android.widget.Toast;
 
 import com.zhanghaochen.smalldemos.R;
 import com.zhanghaochen.smalldemos.framework.BaseActivity;
-import com.zhanghaochen.smalldemos.customer.views.DoodleView;
+import com.zhanghaochen.smalldemos.widget.DoodleView;
 
 public class EditPictureActivity extends BaseActivity {
 

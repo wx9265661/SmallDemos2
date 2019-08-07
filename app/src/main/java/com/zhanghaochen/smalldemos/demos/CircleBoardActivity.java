@@ -9,8 +9,8 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.zhanghaochen.smalldemos.R;
-import com.zhanghaochen.smalldemos.customer.views.CircleBoardView;
-import com.zhanghaochen.smalldemos.customer.views.CountDownTextView;
+import com.zhanghaochen.smalldemos.widget.CircleBoardView;
+import com.zhanghaochen.smalldemos.widget.CountDownTextView;
 import com.zhanghaochen.smalldemos.framework.BaseActivity;
 import com.zhanghaochen.smalldemos.utils.CustomerViewUtils;
 import com.zhanghaochen.smalldemos.utils.SysUtils;

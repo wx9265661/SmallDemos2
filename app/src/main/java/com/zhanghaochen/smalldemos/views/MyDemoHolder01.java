@@ -18,7 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.zhanghaochen.smalldemos.R;
-import com.zhanghaochen.smalldemos.customer.recyclerviews.OnDataChangedListener;
+import com.zhanghaochen.smalldemos.function.recyclerviews.OnDataChangedListener;
 import com.zhanghaochen.smalldemos.utils.GlobalParams;
 import com.zhanghaochen.smalldemos.utils.SysUtils;
 

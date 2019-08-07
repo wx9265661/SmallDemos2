@@ -11,11 +11,11 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.zhanghaochen.smalldemos.R;
-import com.zhanghaochen.smalldemos.customer.recyclerviews.CommonAdapter;
-import com.zhanghaochen.smalldemos.customer.recyclerviews.MaxHeightRecyclerView;
-import com.zhanghaochen.smalldemos.customer.recyclerviews.ViewHolder;
-import com.zhanghaochen.smalldemos.customer.recyclerviews.itemdecoration.Divider;
-import com.zhanghaochen.smalldemos.customer.recyclerviews.itemdecoration.LinearItemDecoration;
+import com.zhanghaochen.smalldemos.function.recyclerviews.CommonAdapter;
+import com.zhanghaochen.smalldemos.function.recyclerviews.MaxHeightRecyclerView;
+import com.zhanghaochen.smalldemos.function.recyclerviews.ViewHolder;
+import com.zhanghaochen.smalldemos.function.recyclerviews.itemdecoration.Divider;
+import com.zhanghaochen.smalldemos.function.recyclerviews.itemdecoration.LinearItemDecoration;
 import com.zhanghaochen.smalldemos.framework.widgets.floatview.HtscFloatBase;
 import com.zhanghaochen.smalldemos.utils.GlobalParams;
 import com.zhanghaochen.smalldemos.utils.SysUtils;

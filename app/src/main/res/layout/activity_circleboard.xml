@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.zhanghaochen.smalldemos.customer.views.CircleBoardView
+    <com.zhanghaochen.smalldemos.widget.CircleBoardView
         android:id="@+id/circle_view"
         android:layout_width="200dp"
         android:layout_height="100dp"
@@ -91,7 +91,7 @@
         app:layout_constraintStart_toEndOf="@id/countdown_ms"
         app:layout_constraintTop_toBottomOf="@id/circle_view" />
 
-    <com.zhanghaochen.smalldemos.customer.views.CountDownTextView
+    <com.zhanghaochen.smalldemos.widget.CountDownTextView
         android:id="@+id/countdown_tv"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

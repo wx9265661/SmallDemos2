@@ -36,7 +36,7 @@
             android:textColor="@color/white" />
     </LinearLayout>
 
-    <com.zhanghaochen.smalldemos.customer.recyclerviews.MaxHeightRecyclerView
+    <com.zhanghaochen.smalldemos.function.recyclerviews.MaxHeightRecyclerView
         android:id="@+id/monitor_recycler"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

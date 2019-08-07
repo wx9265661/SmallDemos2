@@ -5,7 +5,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
-import com.zhanghaochen.smalldemos.customer.views.CircleBoardView;
 import com.zhanghaochen.smalldemos.demos.CircleBoardActivity;
 import com.zhanghaochen.smalldemos.demos.ConstraintLayoutDemoActivity;
 import com.zhanghaochen.smalldemos.demos.FxActivity;

@@ -10,6 +10,7 @@ import com.zhanghaochen.smalldemos.demos.ConstraintLayoutDemoActivity;
 import com.zhanghaochen.smalldemos.demos.FxActivity;
 import com.zhanghaochen.smalldemos.demos.EditPictureActivity;
 import com.zhanghaochen.smalldemos.demos.MyRecyclerViewActivity;
+import com.zhanghaochen.smalldemos.demos.SomeChartShowActivity;
 import com.zhanghaochen.smalldemos.widget.floatview.FloatViewUtil;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -30,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.demo04).setOnClickListener(this);
         findViewById(R.id.demo05).setOnClickListener(this);
         findViewById(R.id.demo06).setOnClickListener(this);
+        findViewById(R.id.demo07).setOnClickListener(this);
     }
 
     @Override
@@ -52,6 +54,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.demo06:
                 FloatViewUtil.getTestFloatIns().show();
+                break;
+            case R.id.demo07:
+                startActivity(new Intent(MainActivity.this, SomeChartShowActivity.class));
                 break;
             default:
                 break;

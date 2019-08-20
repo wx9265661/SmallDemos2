@@ -46,6 +46,11 @@
             android:exported="false"
             android:label="RecyclerView"
             android:theme="@style/AppFullTheme" />
+
+        <activity
+            android:name=".demos.SomeChartShowActivity"
+            android:exported="false"
+            android:theme="@style/AppFullTheme" />
     </application>
 
 </manifest>

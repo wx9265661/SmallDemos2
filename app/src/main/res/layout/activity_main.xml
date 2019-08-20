@@ -48,4 +48,11 @@
         android:layout_gravity="center_horizontal"
         android:text="悬浮窗" />
 
+    <Button
+        android:id="@+id/demo07"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="各种图表" />
+
 </LinearLayout>

@@ -30,4 +30,10 @@
     <color name="image_color_green">#63DB37</color>
     <color name="image_color_blue">#007AFF</color>
     <color name="image_color_white">#FFFFFF</color>
+
+    <color name="hq_up_color">#EC0000</color>
+    <color name="hq_down_color">#00E300</color>
+    <color name="hq_pingpan_color">#FFFFFF</color>
+    <color name="hq_font_color">#C5CED5</color>
+    <color name="hq_num_color">#FFFFFF</color>
 </resources>

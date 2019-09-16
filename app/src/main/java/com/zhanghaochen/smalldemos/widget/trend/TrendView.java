@@ -11,6 +11,7 @@ import android.graphics.Shader;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+import android.view.MotionEvent;
 
 import com.zhanghaochen.smalldemos.beans.TrendDataBean;
 import com.zhanghaochen.smalldemos.framework.widgets.chartview.TrendChartBaseView;
@@ -91,6 +92,11 @@ public class TrendView extends TrendChartBaseView {
 
     private List<TrendDataBean> mTrendDatas = new ArrayList<>();
 
+    /**
+     * 是否在按下中
+     */
+    private boolean mIsPressed;
+
     public TrendView(Context context) {
         super(context);
     }
@@ -126,6 +132,9 @@ public class TrendView extends TrendChartBaseView {
         drawText(canvas);
         drawLines(canvas);
         drawVol(canvas);
+        if (mIsPressed) {
+            drawCrossLine(canvas);
+        }
     }
 
     /**
@@ -255,6 +264,52 @@ public class TrendView extends TrendChartBaseView {
         }
     }
 
+    /**
+     * 绘制按下去的十字线
+     *
+     * @param canvas 画布
+     */
+    private void drawCrossLine(Canvas canvas) {
+        if (mStep <= 0 || mTrendDatas.size() < 1) {
+            return;
+        }
+        initPaint();
+        mPaint.setColor(Color.BLACK);
+        mPaint.setStrokeWidth(SysUtils.convertDpToPixel(1));
+        List<TrendDataBean> items = new ArrayList<>(mTrendDatas);
+
+        // 获取x在分时图中实际移动的x距离，mMoveX是相对整个View的x
+        float trueMoveX = mMoveX - mChartRect.left;
+        float crossX = 0f;
+        float crossY = 0f;
+        // 去y值，y使用分时的y坐标
+        int index = (int) (trueMoveX / mStep);
+        // 如果index比分时数据多，那么去最后一条分时数据
+        if (index > items.size() - 1) {
+            index = items.size() - 1;
+        }
+        if (index <= 0) {
+            index = 0;
+        }
+        crossY = mChartRect.bottom - getOffsetY(items.get(index).newValue);
+
+        // 取x值(相对分时图的x)
+        // x是step的整数倍
+        crossX = index * mStep;
+
+        // 画横线
+        canvas.drawLine(mChartRect.left, crossY, mChartRect.right, crossY, mPaint);
+        // 画竖线
+        if (trueMoveX <= 0) {
+            trueMoveX = 0;
+        }
+        if (trueMoveX >= index * mStep) {
+            trueMoveX = index * mStep;
+        }
+        canvas.drawLine(mChartRect.left + trueMoveX, mVolRect.top, mChartRect.left + trueMoveX, mVolRect.bottom, mPaint);
+        canvas.drawLine(mChartRect.left + trueMoveX, mChartRect.top, mChartRect.left + trueMoveX, mChartRect.bottom, mPaint);
+    }
+
     public void setData(List<TrendDataBean> data) {
         if (data != null && data.size() > 0) {
             this.mTrendDatas.clear();
@@ -306,5 +361,27 @@ public class TrendView extends TrendChartBaseView {
             maxMin[2] = Math.max(maxMin[2], bean.vol);
         }
         return maxMin;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        int action = event.getAction();
+        mMoveX = event.getX();
+        mMoveY = event.getY();
+
+        if (action == MotionEvent.ACTION_DOWN) {
+
+            mIsPressed = true;
+            return true;
+        } else if (action == MotionEvent.ACTION_MOVE) {
+
+            postInvalidate();
+            return true;
+        } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            mIsPressed = false;
+            postInvalidate();
+            return true;
+        }
+        return super.onTouchEvent(event);
     }
 }

@@ -55,4 +55,10 @@
         android:layout_gravity="center_horizontal"
         android:text="各种图表" />
 
+    <Button
+        android:id="@+id/demo08"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="自定义控件" />
 </LinearLayout>

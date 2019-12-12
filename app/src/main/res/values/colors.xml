@@ -36,4 +36,7 @@
     <color name="hq_pingpan_color">#FFFFFF</color>
     <color name="hq_font_color">#C5CED5</color>
     <color name="hq_num_color">#FFFFFF</color>
+
+    <color name="rb_tv_color">#284350</color>
+    <color name="rb_dot_color">#284350</color>
 </resources>

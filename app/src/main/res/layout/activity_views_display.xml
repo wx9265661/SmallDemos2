@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RadioGroup
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="20dp"
+                android:background="@color/white"
+                android:orientation="horizontal"
+                android:paddingLeft="50dp"
+                android:paddingRight="50dp">
+
+                <com.zhanghaochen.smalldemos.widget.FantasticRadioButton
+                    android:id="@+id/radio1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    app:bottom_dot_color="@color/rb_dot_color"
+                    app:fantastic_drawable="@mipmap/home_icon01"
+                    app:icon_height="22dp"
+                    app:icon_width="22dp"
+                    app:label="首页"
+                    app:label_color="@color/rb_tv_color"
+                    app:label_size="16dp" />
+
+                <com.zhanghaochen.smalldemos.widget.FantasticRadioButton
+                    android:id="@+id/radio2"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    app:bottom_dot_color="@color/rb_dot_color"
+                    app:fantastic_drawable="@mipmap/home_icon02"
+                    app:icon_height="22dp"
+                    app:icon_width="22dp"
+                    app:label="新闻"
+                    app:label_color="@color/rb_tv_color"
+                    app:label_size="16dp" />
+
+                <com.zhanghaochen.smalldemos.widget.FantasticRadioButton
+                    android:id="@+id/radio3"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    app:bottom_dot_color="@color/rb_dot_color"
+                    app:fantastic_drawable="@mipmap/home_icon03"
+                    app:icon_height="22dp"
+                    app:icon_width="22dp"
+                    app:label="我的"
+                    app:label_color="@color/rb_tv_color"
+                    app:label_size="16dp" />
+
+                <com.zhanghaochen.smalldemos.widget.FantasticRadioButton
+                    android:id="@+id/radio4"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    app:bottom_dot_color="@color/rb_dot_color"
+                    app:fantastic_drawable="@mipmap/home_icon04"
+                    app:icon_height="22dp"
+                    app:icon_width="22dp"
+                    app:label="收藏"
+                    app:label_color="@color/rb_tv_color"
+                    app:label_size="16dp" />
+            </RadioGroup>
+        </LinearLayout>
+    </ScrollView>
+
+
+</android.support.constraint.ConstraintLayout>

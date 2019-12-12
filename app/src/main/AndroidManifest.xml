@@ -51,6 +51,11 @@
             android:name=".demos.SomeChartShowActivity"
             android:exported="false"
             android:theme="@style/AppFullTheme" />
+
+        <activity
+            android:name=".demos.MyViewsDisplayActivity"
+            android:exported="false"
+            android:label="自定义控件" />
     </application>
 
 </manifest>

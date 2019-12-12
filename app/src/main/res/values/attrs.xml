@@ -1,3 +1,68 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <attr name="noTitle" format="boolean" />
+
+    <declare-styleable name="FantasticRadioButton" tools:ignore="ResourceName">
+        <attr name="image_color" format="color" />
+        <attr name="corrugation_color" format="color" />
+        <attr name="fantastic_drawable" format="reference" />
+        <attr name="bottom_dot_color" format="color" />
+        <attr name="icon_width" format="dimension" />
+        <attr name="icon_height" format="dimension" />
+        <attr name="bottom_dot_width" format="dimension" />
+        <attr name="label" format="string" />
+        <attr name="label_size" format="dimension" />
+        <attr name="label_color" format="color" />
+        <attr name="bg_color" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="RatingProgress">
+        <!--未选中-->
+        <attr name="starEmptyRes" format="reference" />
+        <!--选中半个-->
+        <attr name="starHalfRes" format="reference" />
+        <!--选中全部-->
+        <attr name="starSelectedRes" format="reference" />
+        <!--星星的总数-->
+        <attr name="startTotalNumber" format="integer" />
+        <!--默认选中的数量 -->
+        <attr name="selectedNumber" format="float" />
+        <!--星星的间距-->
+        <attr name="starDistance" format="dimension" />
+        <!--星星的宽度-->
+        <attr name="starWidth" format="dimension" />
+        <!--星星的高度-->
+        <attr name="starHeight" format="dimension" />
+        <!--是不是只画整个星星，不画半个-->
+        <attr name="starIsFull" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="SegmentControlView">
+        <!-- 选中segment的背景颜色 -->
+        <attr name="BackgroundSelectedColor" format="reference|color" />
+        <!-- 未选中segment的背景颜色 -->
+        <attr name="BackgroundNormalColor" format="reference|color" />
+        <!-- 选中segment的文字颜色 -->
+        <attr name="TextSelectedColor" format="reference|color" />
+        <!-- 未选中segment的文字颜色 -->
+        <attr name="TextNormalColor" format="reference|color" />
+        <!-- segment边框的颜色 -->
+        <attr name="FrameColor" format="reference|color" />
+        <!-- segment边框的宽度 -->
+        <attr name="FrameWidth" format="reference|dimension" />
+        <!-- segment四个圆角的半径大小 -->
+        <attr name="FrameCornerRadius" format="reference|dimension" />
+        <!-- 文字大小 -->
+        <attr name="TextSize" format="reference|dimension" />
+        <!-- string数组，每一个string都会填充到一个segment中 -->
+        <attr name="TextArray" format="reference" />
+        <!-- 默认选中的segment -->
+        <attr name="SelectedIndex" format="reference|integer" />
+        <!-- 每一个segment内部的水平padding -->
+        <attr name="SegmentPaddingHorizontal" format="reference|dimension" />
+        <!-- 每一个Segment的竖直方向的padding -->
+        <attr name="SegmentPaddingVertical" format="reference|dimension" />
+        <!-- Segment改变时是否使用颜色渐变效果 -->
+        <attr name="Gradient" format="reference|boolean" />
+    </declare-styleable>
+
 </resources>

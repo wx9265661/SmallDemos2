@@ -2,15 +2,23 @@
     <attr name="noTitle" format="boolean" />
 
     <declare-styleable name="FantasticRadioButton" tools:ignore="ResourceName">
-        <attr name="image_color" format="color" />
+        <!-- 图片的引用 -->
         <attr name="fantastic_drawable" format="reference" />
+        <!-- 底部小点的颜色 -->
         <attr name="bottom_dot_color" format="color" />
+        <!-- 图片的高度 -->
         <attr name="icon_width" format="dimension" />
+        <!-- 图片的宽度 -->
         <attr name="icon_height" format="dimension" />
+        <!-- 底部小点的宽度 -->
         <attr name="bottom_dot_width" format="dimension" />
+        <!-- 文字内容 -->
         <attr name="label" format="string" />
+        <!-- 文字大小 -->
         <attr name="label_size" format="dimension" />
+        <!-- 文字颜色 -->
         <attr name="label_color" format="color" />
+        <!-- 遮罩的颜色，设置成和底色一致 -->
         <attr name="bg_color" format="color" />
     </declare-styleable>
 

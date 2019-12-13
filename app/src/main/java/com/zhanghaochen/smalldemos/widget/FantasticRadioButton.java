@@ -50,11 +50,6 @@ public class FantasticRadioButton extends AppCompatRadioButton {
     // 宽是高的5倍
     private float mBottomRectWidth;
     private float mBottomRectHeight;
-    /**
-     * 底部圆点的当前半径
-     */
-    private float mCurrentCircleRadius = 0;
-    private float mBottomDotWidth;
 
     /**
      * 按钮的图案
@@ -99,7 +94,7 @@ public class FantasticRadioButton extends AppCompatRadioButton {
 
         mBgColor = a.getColor(R.styleable.FantasticRadioButton_bg_color, Color.WHITE);
         mBottomDotColor = a.getColor(R.styleable.FantasticRadioButton_bottom_dot_color, Color.parseColor("#EE82EE"));
-        mBottomDotWidth = a.getDimensionPixelOffset(R.styleable.FantasticRadioButton_bottom_dot_width, SysUtils.convertDpToPixel(4));
+        mBottomStaticRectWidth = a.getDimensionPixelOffset(R.styleable.FantasticRadioButton_bottom_dot_width, SysUtils.convertDpToPixel(15));
         mDrawableWidth = a.getDimensionPixelOffset(R.styleable.FantasticRadioButton_icon_width, 0);
         mDrawableHeight = a.getDimensionPixelOffset(R.styleable.FantasticRadioButton_icon_height, 0);
         mTextStr = SysUtils.getSafeString(a.getString(R.styleable.FantasticRadioButton_label));
@@ -250,28 +245,6 @@ public class FantasticRadioButton extends AppCompatRadioButton {
         path2.close();
         canvas.drawPath(path2, mPaint);
         canvas.restore();
-    }
-
-    /**
-     * 获取底部圆点的动画
-     */
-    private ValueAnimator getCircleAnimation() {
-        ValueAnimator cirAnimation = ValueAnimator.ofFloat(0f, mBottomDotWidth / 2);
-        cirAnimation.setDuration(DURATION_TIME);
-        cirAnimation.setInterpolator(new TimeInterpolator() {
-            @Override
-            public float getInterpolation(float v) {
-                return 1 - (1 - v) * (1 - v);
-            }
-        });
-        cirAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                mCurrentCircleRadius = (float) animation.getAnimatedValue();
-                postInvalidate();
-            }
-        });
-        return cirAnimation;
     }
 
     /**

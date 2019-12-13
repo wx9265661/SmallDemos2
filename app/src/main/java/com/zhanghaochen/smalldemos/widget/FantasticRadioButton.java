@@ -57,27 +57,6 @@ public class FantasticRadioButton extends AppCompatRadioButton {
     private float mBottomDotWidth;
 
     /**
-     * 波纹效果的起始半径
-     */
-    private float mStartRectRadius;
-    /**
-     * 波纹效果的结束半径
-     */
-    private float mEndRectRadius;
-    private Paint mArcPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private int mCorrugationColor;
-    /**
-     * 波纹的动态画笔粗细
-     */
-    private float mArcWidth;
-    /**
-     * 波纹的初始画笔粗细
-     */
-    private float mArcStaticWidth;
-
-    private boolean mIsDrawCircle = false;
-
-    /**
      * 按钮的图案
      */
     private Bitmap mIconBitmap;
@@ -121,7 +100,6 @@ public class FantasticRadioButton extends AppCompatRadioButton {
         mBgColor = a.getColor(R.styleable.FantasticRadioButton_bg_color, Color.WHITE);
         mBottomDotColor = a.getColor(R.styleable.FantasticRadioButton_bottom_dot_color, Color.parseColor("#EE82EE"));
         mBottomDotWidth = a.getDimensionPixelOffset(R.styleable.FantasticRadioButton_bottom_dot_width, SysUtils.convertDpToPixel(4));
-        mCorrugationColor = a.getColor(R.styleable.FantasticRadioButton_corrugation_color, Color.GRAY);
         mDrawableWidth = a.getDimensionPixelOffset(R.styleable.FantasticRadioButton_icon_width, 0);
         mDrawableHeight = a.getDimensionPixelOffset(R.styleable.FantasticRadioButton_icon_height, 0);
         mTextStr = SysUtils.getSafeString(a.getString(R.styleable.FantasticRadioButton_label));
@@ -159,11 +137,6 @@ public class FantasticRadioButton extends AppCompatRadioButton {
             mCenterX = w / 2;
             mCenterY = h / 2;
 
-            // 画圆环，半径是整个画布的五分之一
-            mStartRectRadius = Math.min(mWidth, mHeight) / 5;
-            mEndRectRadius = Math.min(mWidth, mHeight) / 2;
-            mArcWidth = Math.min(mWidth, mHeight) / 4;
-            mArcStaticWidth = Math.min(mWidth, mHeight) / 4;
         }
     }
 
@@ -174,15 +147,11 @@ public class FantasticRadioButton extends AppCompatRadioButton {
             return;
         }
 
-        if (mIsDrawCircle) {
-            drawArcCorrugation(canvas);
-        }
-
         // 先画图片和文字切换的部分
         if (mIconBitmap != null) {
             drawIconAndText(canvas);
         }
-        // 画一个遮挡层
+        // 画一个遮挡层，为了遮住放在图片下面的文字
         float layerHeight = (getHeight() - mIconBitmap.getHeight()) / 3;
         mPaint.setColor(mBgColor);
         canvas.drawRect(0, getHeight() - layerHeight, mWidth, getHeight(), mPaint);
@@ -207,34 +176,16 @@ public class FantasticRadioButton extends AppCompatRadioButton {
         ValueAnimator iconAni = getIconAndTextAnimation();
         if (isChanged) {
             if (checked) {
-                mIsDrawCircle = false;
 //                startCircleAnimator();
                 bottomLineAni.start();
                 iconAni.start();
                 postInvalidate();
             } else {
-                mIsDrawCircle = false;
                 bottomLineAni.reverse();
                 iconAni.reverse();
                 postInvalidate();
             }
         }
-    }
-
-    /**
-     * 画外圈的波纹
-     */
-    private void drawArcCorrugation(Canvas canvas) {
-        canvas.save();
-        mArcPaint.setAntiAlias(true);
-        mArcPaint.setColor(mCorrugationColor);
-        mArcPaint.setStyle(Paint.Style.STROKE);
-        mArcPaint.setStrokeWidth(mArcWidth);
-
-        canvas.drawArc(new RectF(mCenterX - mStartRectRadius, mCenterY - mStartRectRadius, mCenterX + mStartRectRadius, mCenterY + mStartRectRadius),
-            0, 360, false, mArcPaint);
-        canvas.restore();
-
     }
 
     /**
@@ -302,39 +253,6 @@ public class FantasticRadioButton extends AppCompatRadioButton {
     }
 
     /**
-     * 外圈的圆形的波纹效果
-     */
-    private void startCircleAnimator() {
-        ValueAnimator arcAnimation = ValueAnimator.ofFloat(mStartRectRadius, mEndRectRadius);
-        arcAnimation.setDuration(DURATION_TIME);
-        arcAnimation.setInterpolator(new TimeInterpolator() {
-            @Override
-            public float getInterpolation(float v) {
-                return 1 - (1 - v) * (1 - v);
-            }
-        });
-        arcAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                mStartRectRadius = (float) animation.getAnimatedValue();
-                // 设置画笔的粗细
-                mArcWidth = (mEndRectRadius - mStartRectRadius) / (mEndRectRadius - Math.min(mWidth, mHeight) / 5) * mArcStaticWidth;
-                postInvalidate();
-            }
-        });
-        arcAnimation.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                super.onAnimationEnd(animation);
-                mIsDrawCircle = false;
-                mStartRectRadius = Math.min(mWidth, mHeight) / 5;
-                mArcWidth = mArcStaticWidth;
-            }
-        });
-        arcAnimation.start();
-    }
-
-    /**
      * 获取底部圆点的动画
      */
     private ValueAnimator getCircleAnimation() {
@@ -356,6 +274,9 @@ public class FantasticRadioButton extends AppCompatRadioButton {
         return cirAnimation;
     }
 
+    /**
+     * 获取底部小点点的动画
+     */
     private ValueAnimator startBottomLineAnimation() {
         ValueAnimator lineAnimation = ValueAnimator.ofFloat(0f, mBottomStaticRectWidth);
         lineAnimation.setDuration(DURATION_TIME);

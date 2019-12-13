@@ -3,7 +3,6 @@
 
     <declare-styleable name="FantasticRadioButton" tools:ignore="ResourceName">
         <attr name="image_color" format="color" />
-        <attr name="corrugation_color" format="color" />
         <attr name="fantastic_drawable" format="reference" />
         <attr name="bottom_dot_color" format="color" />
         <attr name="icon_width" format="dimension" />

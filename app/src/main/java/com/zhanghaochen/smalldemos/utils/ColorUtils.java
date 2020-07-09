@@ -1,6 +1,6 @@
 package com.zhanghaochen.smalldemos.utils;
 
-import android.support.v4.content.ContextCompat;
+import androidx.core.content.ContextCompat;
 
 import com.zhanghaochen.smalldemos.R;
 

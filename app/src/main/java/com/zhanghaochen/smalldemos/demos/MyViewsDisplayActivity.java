@@ -2,7 +2,7 @@ package com.zhanghaochen.smalldemos.demos;
 
 import android.os.Bundle;
 import android.os.Message;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.zhanghaochen.smalldemos.R;
 import com.zhanghaochen.smalldemos.framework.BaseActivity;

@@ -37,7 +37,7 @@
 package com.zhanghaochen.smalldemos.function.recyclerviews.itemdecoration;
 
 import android.graphics.Color;
-import android.support.annotation.ColorInt;
+import androidx.annotation.ColorInt;
 
 import com.zhanghaochen.smalldemos.utils.SysUtils;
 

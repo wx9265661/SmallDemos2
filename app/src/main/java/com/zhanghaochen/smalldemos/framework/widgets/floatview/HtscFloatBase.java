@@ -1,9 +1,9 @@
 package com.zhanghaochen.smalldemos.framework.widgets.floatview;
 
 import android.content.Context;
-import android.support.annotation.CallSuper;
-import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
+import androidx.annotation.CallSuper;
+import androidx.annotation.IdRes;
+import androidx.annotation.LayoutRes;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;

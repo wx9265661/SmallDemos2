@@ -37,7 +37,7 @@
 package com.zhanghaochen.smalldemos.function.recyclerviews.support;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.zhanghaochen.smalldemos.function.recyclerviews.MultiItemCommonAdapter;
 import com.zhanghaochen.smalldemos.function.recyclerviews.MultiItemTypeSupport;

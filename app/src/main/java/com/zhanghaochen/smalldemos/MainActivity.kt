@@ -1,12 +1,14 @@
 package com.zhanghaochen.smalldemos
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import com.zhanghaochen.smalldemos.demos.*
-
+import com.zhanghaochen.smalldemos.demos.recyclerstudy.RecyclerViewDemoActivity
 import com.zhanghaochen.smalldemos.widget.floatview.FloatViewUtil
+import kotlinx.android.synthetic.main.activity_main.*
+import org.jetbrains.anko.startActivity
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
 
@@ -27,6 +29,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         findViewById<View>(R.id.demo06).setOnClickListener(this)
         findViewById<View>(R.id.demo07).setOnClickListener(this)
         findViewById<View>(R.id.demo08).setOnClickListener(this)
+
+        demo09.setOnClickListener {
+            startActivity<RecyclerViewDemoActivity>()
+        }
     }
 
     override fun onClick(v: View) {

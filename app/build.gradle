@@ -1,5 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 28
@@ -34,6 +36,11 @@ dependencies {
     implementation 'androidx.gridlayout:gridlayout:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.core:core-ktx:1.0.2'
+    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    // 一些三方控件
+    implementation "org.jetbrains.anko:anko:0.10.8"
 }
 apply plugin: 'jacoco'
 

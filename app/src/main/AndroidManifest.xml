@@ -56,6 +56,10 @@
             android:name=".demos.MyViewsDisplayActivity"
             android:exported="false"
             android:label="自定义控件" />
+
+        <activity
+            android:name=".demos.recyclerstudy.RecyclerViewDemoActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'androidx.navigation.safeargs'
 
 android {
     compileSdkVersion 28
@@ -41,6 +42,9 @@ dependencies {
     implementation 'androidx.cardview:cardview:1.0.0'
     // 一些三方控件
     implementation "org.jetbrains.anko:anko:0.10.8"
+    // jetpack Navigation
+    implementation "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
+    implementation "androidx.navigation:navigation-ui-ktx:$navigationVersion"
 }
 apply plugin: 'jacoco'
 

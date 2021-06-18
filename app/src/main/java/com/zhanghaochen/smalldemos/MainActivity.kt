@@ -33,11 +33,17 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         demo09.setOnClickListener {
             startActivity<RecyclerViewDemoActivity>()
         }
+        demo10.setOnClickListener {
+            android.R.anim.slide_in_left
+            startActivity<NavigationDemoActivity>()
+        }
     }
 
     override fun onClick(v: View) {
         when (v.id) {
-            R.id.demo01 -> startActivity(Intent(this@MainActivity, FxActivity::class.java))
+            R.id.demo01 -> {
+                startActivity(Intent(this@MainActivity, FxActivity::class.java))
+            }
             R.id.demo02 -> startActivity(Intent(this@MainActivity, ConstraintLayoutDemoActivity::class.java))
             R.id.demo03 -> startActivity(Intent(this@MainActivity, EditPictureActivity::class.java))
             R.id.demo04 -> startActivity(Intent(this@MainActivity, CircleBoardActivity::class.java))

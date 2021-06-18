@@ -60,6 +60,10 @@
         <activity
             android:name=".demos.recyclerstudy.RecyclerViewDemoActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".demos.NavigationDemoActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

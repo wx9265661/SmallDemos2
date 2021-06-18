@@ -29,6 +29,8 @@ class LoginFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         regist.setOnClickListener {
             val action = LoginFragmentDirections.actionLoginFragmentToRegistFragment()
+                    .setName("wer")
+                    .setAge(30)
             findNavController().navigate(action)
         }
     }

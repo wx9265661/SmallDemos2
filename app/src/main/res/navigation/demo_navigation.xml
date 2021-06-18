@@ -17,10 +17,22 @@
             app:exitAnim="@anim/common_slide_out_left"
             app:popEnterAnim="@anim/common_slide_in_left"
             app:popExitAnim="@anim/common_slide_out_right" />
+
     </fragment>
     <fragment
         android:id="@+id/registFragment"
         android:name="com.zhanghaochen.smalldemos.demos.naviga.RegistFragment"
         android:label="RegistFragment"
-        tools:layout="@layout/fragment_regest" />
+        tools:layout="@layout/fragment_regest">
+        <argument
+            android:name="name"
+            android:defaultValue=""
+            app:argType="string" />
+
+        <argument
+            android:name="age"
+            android:defaultValue="10"
+            app:argType="integer"
+            app:nullable="false" />
+    </fragment>
 </navigation>

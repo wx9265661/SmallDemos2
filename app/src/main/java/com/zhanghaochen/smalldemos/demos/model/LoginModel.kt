@@ -22,9 +22,12 @@ class LoginModel constructor(name: String, pwd: String, context: Context) {
         p.set(s.toString())
     }
 
-    fun login() {
+    fun login(): Boolean {
         if (n.get() == "admin" && p.get() == "admin") {
             Toast.makeText(context, "账号密码正确", Toast.LENGTH_SHORT).show()
+            return true
         }
+        Toast.makeText(context, "账号密码错误！！", Toast.LENGTH_SHORT).show()
+        return false
     }
 }

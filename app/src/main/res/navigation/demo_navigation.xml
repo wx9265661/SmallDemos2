@@ -17,6 +17,14 @@
             app:exitAnim="@anim/common_slide_out_left"
             app:popEnterAnim="@anim/common_slide_in_left"
             app:popExitAnim="@anim/common_slide_out_right" />
+        <action
+            android:id="@+id/action_loginFragment_to_wowMainFragment"
+            app:destination="@id/wowMainFragment"
+            app:enterAnim="@anim/common_slide_in_right"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true"
+            app:exitAnim="@anim/common_slide_out_left"
+            app:launchSingleTop="true" />
 
     </fragment>
     <fragment
@@ -34,5 +42,15 @@
             android:defaultValue="10"
             app:argType="integer"
             app:nullable="false" />
+    </fragment>
+    <fragment
+        android:id="@+id/wowMainFragment"
+        android:name="com.zhanghaochen.smalldemos.demos.WowMainFragment"
+        android:label="WowMainFragment"
+        tools:layout="@layout/fragment_wow_main">
+        <argument
+            android:name="name"
+            android:defaultValue=""
+            app:argType="string" />
     </fragment>
 </navigation>

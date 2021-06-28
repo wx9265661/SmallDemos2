@@ -6,10 +6,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.zhanghaochen.smalldemos.R
 import com.zhanghaochen.smalldemos.databinding.FragmentLoginBinding
 import com.zhanghaochen.smalldemos.demos.NavigationDemoActivity
+import com.zhanghaochen.smalldemos.demos.livedataandvm.PeopleModel
 import com.zhanghaochen.smalldemos.demos.model.LoginModel
 import com.zhanghaochen.smalldemos.framework.BaseFragment
 import kotlinx.android.synthetic.main.fragment_login.*
@@ -26,10 +29,16 @@ class LoginFragment : BaseFragment() {
 
     }
 
+    val viewModel: PeopleModel by lazy {
+        // 这里可以用activity也可以用fragment，这决定了这个viewModel的生命周期
+        ViewModelProviders.of(activity!!).get(PeopleModel::class.java)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 //        val mainView = inflater.inflate(R.layout.fragment_login, container, false)
+        // 进项databing的操作
         val binding = DataBindingUtil.inflate<FragmentLoginBinding>(inflater, R.layout.fragment_login, container, false)
-        loginModel = LoginModel("aaa", "", context!!)
+        loginModel = LoginModel("admin", "admin", context!!)
         binding.model = loginModel
         binding.activity = activity as NavigationDemoActivity?
 
@@ -45,6 +54,10 @@ class LoginFragment : BaseFragment() {
                 charSequence?.let { loginModel.onNameChanged(it) }
             }
         }
+        ed2.setText(loginModel.p.get())
+        ed2.textChangedListener {
+            onTextChanged { charSequence, i, i2, i3 -> charSequence?.let { loginModel.onPwdChanged(it, i, i2, i3) } }
+        }
 
         regist.setOnClickListener {
             val action = LoginFragmentDirections.actionLoginFragmentToRegistFragment()
@@ -52,5 +65,18 @@ class LoginFragment : BaseFragment() {
                     .setAge(30)
             findNavController().navigate(action)
         }
+
+        login.setOnClickListener {
+            // 跳转到主界面
+            if (loginModel.login()) {
+                val action = LoginFragmentDirections.actionLoginFragmentToWowMainFragment()
+                        .setName(loginModel.n.get() ?: "")
+                findNavController().navigate(action)
+            }
+        }
+
+        viewModel.role.observe(this, Observer {
+            fcd.text = it.toString()
+        })
     }
 }

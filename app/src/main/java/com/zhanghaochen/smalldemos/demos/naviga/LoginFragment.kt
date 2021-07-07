@@ -5,6 +5,7 @@ import android.os.Message
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -24,7 +25,6 @@ import org.jetbrains.anko.sdk27.coroutines.textChangedListener
  * 描述：
  */
 class LoginFragment : BaseFragment() {
-    lateinit var loginModel: LoginModel
     override fun handleMessage(message: Message?) {
 
     }
@@ -38,8 +38,6 @@ class LoginFragment : BaseFragment() {
 //        val mainView = inflater.inflate(R.layout.fragment_login, container, false)
         // 进项databing的操作
         val binding = DataBindingUtil.inflate<FragmentLoginBinding>(inflater, R.layout.fragment_login, container, false)
-        loginModel = LoginModel("admin", "admin", context!!)
-        binding.model = loginModel
         binding.activity = activity as NavigationDemoActivity?
 
         return binding.root
@@ -48,15 +46,13 @@ class LoginFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         // 一些绑定操作
-        ed1.setText(loginModel.n.get())
         ed1.textChangedListener {
             onTextChanged { charSequence, i, i2, i3 ->
-                charSequence?.let { loginModel.onNameChanged(it) }
+
             }
         }
-        ed2.setText(loginModel.p.get())
         ed2.textChangedListener {
-            onTextChanged { charSequence, i, i2, i3 -> charSequence?.let { loginModel.onPwdChanged(it, i, i2, i3) } }
+
         }
 
         regist.setOnClickListener {
@@ -68,11 +64,21 @@ class LoginFragment : BaseFragment() {
 
         login.setOnClickListener {
             // 跳转到主界面
-            if (loginModel.login()) {
+            val userLiveData = viewModel.login("admin", "admin")
+            if (userLiveData.value != null) {
                 val action = LoginFragmentDirections.actionLoginFragmentToWowMainFragment()
-                        .setName(loginModel.n.get() ?: "")
+                        .setName(userLiveData.value?.name ?: "")
                 findNavController().navigate(action)
+            } else {
+                Toast.makeText(context, "没有这个账号", Toast.LENGTH_SHORT).show()
             }
+            userLiveData.observe(viewLifecycleOwner, Observer {
+                it?.let {
+                    val action = LoginFragmentDirections.actionLoginFragmentToWowMainFragment()
+                            .setName(userLiveData.value?.name ?: "")
+                    findNavController().navigate(action)
+                }
+            })
         }
 
         viewModel.role.observe(this, Observer {

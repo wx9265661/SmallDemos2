@@ -27,17 +27,26 @@ class UserRepository private constructor(private val userDao: UserDao) {
      * 挂起函数只能在协程中和其他挂起函数中调用，不能在其他地方使用。
      *
      */
-    suspend fun register(account: String, pwd: String): Long {
+    suspend fun register(account: String, pwd: String): Boolean {
         // withContextt这个函数主要可以切换到指定的线程，并在闭包内的逻辑执行结束之后，自动把线程切回去继续执行
         return withContext(IO) {
             // 切换到 IO 线程，并在执行完成后切回 UI 线程
             // 将会运行在 IO 线程
-            userDao.insertUser(User("NORMAL", account, pwd, 0))
+
+            // 首先看看这个账户有没有
+            val user = userDao.findUser(account, pwd)
+            if (user == null) {
+                // 没有这个账号，插入
+                userDao.insertUser(User("NORMAL", account, pwd, 0))
+                return@withContext true
+            }
+            // 有这个账号，注册失败
+            return@withContext false
         }
     }
 
     suspend fun delete(user: User) {
-        withContext(IO){
+        withContext(IO) {
             val users = userDao.findUserByName(user.name)
             if (!users.isNullOrEmpty()) {
                 users.forEach {

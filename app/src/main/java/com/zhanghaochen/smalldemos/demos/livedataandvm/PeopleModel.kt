@@ -2,6 +2,7 @@ package com.zhanghaochen.smalldemos.demos.livedataandvm
 
 import android.app.Application
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -15,8 +16,11 @@ import com.zhanghaochen.smalldemos.demos.repository.UserRepository
 import com.zhanghaochen.smalldemos.framework.MyApplication
 import com.zhanghaochen.smalldemos.kotlinstudy.beans.People
 import com.zhanghaochen.smalldemos.utils.GlobalParams
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
 
 /**
  * @author created by zhanghaochen
@@ -28,6 +32,8 @@ class PeopleModel : ViewModel() {
         const val ADMIN = "admin"
         const val NORMAL = "normal"
     }
+
+    val registUser: MutableLiveData<User> = MutableLiveData(User("", "", "", 0))
 
     // 角色的观察对象，普通员工或者管理员
     val role = MutableLiveData<String>().apply {
@@ -49,7 +55,14 @@ class PeopleModel : ViewModel() {
 
     fun register(account: String, pwd: String) {
         GlobalScope.launch {
-            UserRepository.getInstance(AppDataBase.getInstance(GlobalParams.mApplication).userDao()).register(account, pwd)
+            val result = UserRepository.getInstance(AppDataBase.getInstance(GlobalParams.mApplication).userDao()).register(account, pwd)
+            withContext(Dispatchers.Main) {
+                Toast.makeText(GlobalParams.mApplication, if (result) {
+                    "注册成功"
+                } else {
+                    "改账号已存在"
+                }, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

@@ -23,6 +23,9 @@ interface UserDao {
     @Update
     fun updateUser(user: User)
 
+    @Query("select * from user where user_name= :name and user_pwd = :pwd")
+    fun findUser(name: String, pwd: String): User?
+
     @Delete
     fun deleteUser(user: User)
 

@@ -4,6 +4,24 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <EditText
+        android:id="@+id/ed1"
+        android:layout_width="200dp"
+        android:layout_height="60dp"
+        android:layout_marginTop="100dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/ed2"
+        android:layout_width="200dp"
+        android:layout_height="60dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ed1" />
+
     <TextView
         android:id="@+id/rg_tv"
         android:layout_width="wrap_content"
@@ -15,12 +33,33 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/rg_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/delete_admin" />
+
     <Button
         android:id="@+id/delete_admin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="删除admin"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/register_btn"
+        app:layout_constraintTop_toBottomOf="@id/ed2" />
+
+    <Button
+        android:id="@+id/register_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="注册"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/delete_admin"
+        app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/rg_tv" />
+        app:layout_constraintTop_toBottomOf="@id/ed2" />
 </androidx.constraintlayout.widget.ConstraintLayout>

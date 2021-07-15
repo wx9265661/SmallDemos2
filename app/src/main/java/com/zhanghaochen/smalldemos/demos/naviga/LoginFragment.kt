@@ -16,6 +16,7 @@ import com.zhanghaochen.smalldemos.demos.NavigationDemoActivity
 import com.zhanghaochen.smalldemos.demos.livedataandvm.PeopleModel
 import com.zhanghaochen.smalldemos.demos.model.LoginModel
 import com.zhanghaochen.smalldemos.framework.BaseFragment
+import com.zhanghaochen.smalldemos.utils.GlobalParams
 import kotlinx.android.synthetic.main.fragment_login.*
 import org.jetbrains.anko.sdk27.coroutines.textChangedListener
 
@@ -64,20 +65,14 @@ class LoginFragment : BaseFragment() {
 
         login.setOnClickListener {
             // 跳转到主界面
-            val userLiveData = viewModel.login("admin", "admin")
-            if (userLiveData.value != null) {
-                val action = LoginFragmentDirections.actionLoginFragmentToWowMainFragment()
-                        .setName(userLiveData.value?.name ?: "")
-                findNavController().navigate(action)
-            } else {
-                Toast.makeText(context, "没有这个账号", Toast.LENGTH_SHORT).show()
-            }
+            val userLiveData = viewModel.login(ed1.text.toString(), ed2.text.toString())
+
             userLiveData.observe(viewLifecycleOwner, Observer {
                 it?.let {
                     val action = LoginFragmentDirections.actionLoginFragmentToWowMainFragment()
                             .setName(userLiveData.value?.name ?: "")
                     findNavController().navigate(action)
-                }
+                } ?: Toast.makeText(GlobalParams.mApplication, "账号或密码有误", Toast.LENGTH_SHORT).show()
             })
         }
 
